@@ -18,7 +18,8 @@
         <kryo.version>5.3.0</kryo.version>
         <protobuf.version>3.21.1</protobuf.version>
         <hessian.version>4.0.66</hessian.version>
-
+        <fastjson.version>2.0.7</fastjson.version>
+        <hutool.version>5.8.3</hutool.version>
     </properties>
 
     <!-- maven 编译器设置为 JDK 8 -->
@@ -84,7 +85,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>2.0.7</version>
+            <version>${fastjson.version}</version>
         </dependency>
 
         <!-- kryo -->
@@ -115,7 +116,27 @@
             <version>${javassist.version}</version>
         </dependency>
 
+        <!-- hutool -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>${hutool.version}</version>
+        </dependency>
+
+        <!-- 单元测试 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.8.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.example</groupId>
+            <artifactId>rpc-framework-interface</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
 
     </dependencies>
+
 
 </project>
