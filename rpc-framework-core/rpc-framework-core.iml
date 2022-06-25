@@ -66,6 +66,6 @@
     <orderEntry type="library" name="Maven: org.opentest4j:opentest4j:1.2.0" level="project" />
     <orderEntry type="library" name="Maven: org.junit.platform:junit-platform-commons:1.8.2" level="project" />
     <orderEntry type="library" name="Maven: org.apiguardian:apiguardian-api:1.1.2" level="project" />
-    <orderEntry type="module" module-name="rpc-framework-interface" />
+    <orderEntry type="library" name="Maven: org.example:rpc-framework-interface:1.0-SNAPSHOT" level="project" />
   </component>
 </module>

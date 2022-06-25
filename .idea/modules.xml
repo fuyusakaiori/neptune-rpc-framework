@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/rpc-framework-core/neptune-rpc-framework.iml" filepath="$PROJECT_DIR$/rpc-framework-core/neptune-rpc-framework.iml" />
       <module fileurl="file://$PROJECT_DIR$/socket-demo/net-demo.iml" filepath="$PROJECT_DIR$/socket-demo/net-demo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/rpc-framework-core/rpc-framework-core.iml" filepath="$PROJECT_DIR$/rpc-framework-core/rpc-framework-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/rpc-framework-interface/rpc-framework-interface/rpc-framework-interface.iml" filepath="$PROJECT_DIR$/rpc-framework-interface/rpc-framework-interface/rpc-framework-interface.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rpc-framework-interface/rpc-framework-interface.iml" filepath="$PROJECT_DIR$/rpc-framework-interface/rpc-framework-interface.iml" />
     </modules>
   </component>
 </project>
