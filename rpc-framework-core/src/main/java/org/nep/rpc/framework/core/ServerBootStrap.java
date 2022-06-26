@@ -9,7 +9,6 @@ import org.nep.rpc.framework.core.server.NeptuneRpcServer;
 @Slf4j
 public class ServerBootStrap
 {
-
     public static void main(String[] args) {
         new NeptuneRpcServer().startNeptune();
     }

@@ -1,16 +1,24 @@
 package org.nep.rpc.framework.core.handler;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.common.cache.NeptuneRpcBeanCache;
+import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
 
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.nep.rpc.framework.core.common.constant.CommonConstant.PRIMITIVE_TO_WRAPPER;
 
 /**
  * <h3>Neptune RPC 服务器消息处理器</h3>
@@ -29,19 +37,27 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         NeptuneRpcProtocol protocol =  (NeptuneRpcProtocol) message;
         log.debug("message: {}", protocol);
         // 2. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
-        NeptuneRpcInvocation invocation = JSON.parseObject(new String(protocol.getContent()), NeptuneRpcInvocation.class);
+        NeptuneRpcInvocation invocation = JSON.parseObject(
+                new String(protocol.getContent()), NeptuneRpcInvocation.class);
         log.debug("invocation: {}", invocation);
         // 3. 从服务端容器中取出缓存的接口
-        Object target = NeptuneRpcBeanCache.getBean(invocation.getTargetClass());
-        log.debug("target: {}", target);
-        // 4. 获取目标类中的所有方法
+        Object target = NeptuneRpcServerCache.getFromCache(invocation.getTargetClass());
+        // 4. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
+        if (target == null){
+            log.error("[Neptune RPC Server]: 客户端调用的接口不存在");
+            invocation.setResponse("客户端调用的接口不存在");
+            protocol.setContent(JSON.toJSONString(invocation).getBytes(StandardCharsets.UTF_8));
+            ctx.writeAndFlush(protocol);
+            return;
+        }
+        // 5. 获取目标类中的所有方法
         Method[] methods = target.getClass().getDeclaredMethods();
         log.debug("methods: {}", methods.length);
         // 5. 开始匹配方法然后调用
         Object result = null;
         for (Method method : methods) {
             // 注: 如果只比较方法名, 那么很有可能出现方法重载的情况, 最后导致方法调错
-            if(method.getName().equals(invocation.getTargetMethod())){
+            if(checkMethod(method, invocation)){
                 result = method.invoke(target, invocation.getArgs());
                 break;
             }
@@ -53,11 +69,30 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
+     * <h3>避免调用重载方法: 暂时的解决方案</h3>
+     */
+    public boolean checkMethod(Method method, NeptuneRpcInvocation invocation){
+        if (!method.getName().equals(invocation.getTargetMethod()))
+            return false;
+        if (method.getParameterCount() != invocation.getArgs().length)
+            return false;
+        List<String> target = Arrays.stream(invocation.getArgs())
+                                      .map(arg -> arg.getClass().getTypeName())
+                                      .collect(Collectors.toList());
+        List<String> source = Arrays.stream(method.getParameterTypes())
+                                      .map(parameter -> parameter.isPrimitive()
+                                                                ? PRIMITIVE_TO_WRAPPER.get(parameter.getTypeName())
+                                                                : parameter.getTypeName())
+                                      .collect(Collectors.toList());
+        return CollectionUtil.containsAll(target, source);
+    }
+
+    /**
      * <h3>处理连接建立事件</h3>
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.debug("[Neptune RPC]: 正在建立连接...");
+        log.debug("[Neptune Server RPC]: 正在建立连接...");
         super.channelActive(ctx);
     }
 

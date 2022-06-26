@@ -6,7 +6,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.common.cache.NeptuneRpcBeanCache;
+import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.common.constant.ServerConfigConstant;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
@@ -17,6 +17,7 @@ import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
 import java.net.InetSocketAddress;
 
 import static org.nep.rpc.framework.core.common.constant.CommonConstant.DEFAULT_SERVER_PORT;
+import static org.nep.rpc.framework.core.common.constant.CommonConstant.PRIMITIVE_TO_WRAPPER;
 
 /**
  * <h3>Neptune RPC 服务器</h3>
@@ -24,11 +25,25 @@ import static org.nep.rpc.framework.core.common.constant.CommonConstant.DEFAULT_
 @Slf4j
 public class NeptuneRpcServer {
 
+    static {
+        PRIMITIVE_TO_WRAPPER.put("int", Integer.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("float", Float.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("double", Double.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("boolean", Boolean.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("byte", Byte.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("short", Short.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("long", Long.class.getName());
+        PRIMITIVE_TO_WRAPPER.put("char", Character.class.getName());
+    }
+
+    // 服务器端口号
     private final int port;
-
+    // 负责处理连接事件的循环事件组
     private EventLoopGroup boss;
-
+    // 负责处理其他事件的循环事件组
     private EventLoopGroup worker;
+
+    private ChannelFuture future;
 
     public NeptuneRpcServer(){
         this(DEFAULT_SERVER_PORT);
@@ -70,39 +85,47 @@ public class NeptuneRpcServer {
                             channel.pipeline().addLast(new NeptuneRpcServerHandler());
                         }
                     });
-            server.bind(new InetSocketAddress(port)).sync();
+            future = server.bind(new InetSocketAddress(port)).sync();
             log.info("[Neptune RPC Server]: 服务器启动成功");
+            // 注: 服务器同步等待关闭: 如果在某个地方调用 close 方法, 那么服务器就会直接关闭
+            future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             log.error("[Neptune RPC Server]: 服务器出现异常", e);
+        }finally {
+            // 5. 关闭服务器
+            close();
         }
     }
 
+    /**
+     * <h3>关闭服务器</h3>
+     */
     private void close() {
-        // 5. 关闭线程池
         worker.shutdownGracefully();
         boss.shutdownGracefully();
+        future.channel().close();
         log.info("[Neptune RPC Server]: 服务器关闭");
     }
 
     /**
      * <h3>1. 将对外提供的接口缓存</h3>
      * <h3>2. 避免每次反射调用的时候都去查询</h3>
-     * <h3>TODO 为什么服务端提供的类必须实现接口?</h3>
+     * TODO <h3>3. 等待处理: 利用反射将提供的服务全部注册到哈希表中</h3>
      */
     private void registryClass(Object target){
-        // TODO 1. 扫描对外提供的服务中的所有类
-        // 2. 判断这个类是否实现接口, 如果没有实现接口, 那么就没有办法采用 JDK 动态代理
+        // 1. 服务提供者不会直接将实现类暴露出来, 而是通过接口的形式对外提供, 所以实现类必须实现接口, 才是对外提供的服务
         Class<?>[] interfaces = target.getClass().getInterfaces();
         if (interfaces.length == 0){
             log.error("[Neptune RPC Server]: 被调用的类没有实现接口");
             return;
         }
+        // 2. thrift 框架好像每个对外提供的实现类也只会是实现一个接口, 暂时不清楚为什么只能有一个接口
         if (interfaces.length > 1){
             log.error("[Neptune RPC Server]: 被调用的类只能有一个接口实现");
             return;
         }
-        // 3. 如果符合条件, 那么就将类的名字和实例注册到哈希表中, 类似于 Spring 注册中心
-        NeptuneRpcBeanCache.registryBean(interfaces[0].getName(), target);
+        // 3. 如果符合条件, 那么就将对外提供的接口名字和实现类对象放入缓存中
+        NeptuneRpcServerCache.registryInCache(interfaces[0].getName(), target);
     }
 
 }

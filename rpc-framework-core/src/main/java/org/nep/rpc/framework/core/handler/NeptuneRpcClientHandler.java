@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
 
-import static org.nep.rpc.framework.core.common.cache.NeptuneRpcMessageCache.RESPONSE_CACHE;
+import static org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache.RESPONSE_CACHE;
 
 @Slf4j
 public class NeptuneRpcClientHandler extends ChannelInboundHandlerAdapter {

@@ -2,19 +2,15 @@ package org.nep.rpc.framework.core.proxy.jdk;
 
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.common.constant.CommonConstant;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
-import org.nep.rpc.framework.core.proxy.ProxyFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
-import static org.nep.rpc.framework.core.common.cache.NeptuneRpcMessageCache.RESPONSE_CACHE;
-import static org.nep.rpc.framework.core.common.cache.NeptuneRpcMessageCache.SEND_MESSAGE_QUEUE;
+import static org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache.RESPONSE_CACHE;
+import static org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache.SEND_MESSAGE_QUEUE;
 import static org.nep.rpc.framework.core.common.constant.CommonConstant.CALL_TIME_OUT;
 
 /**
@@ -42,13 +38,14 @@ public class JdkDynamicProxy implements InvocationHandler {
         invocation.setTargetMethod(method.getName());
         invocation.setTargetClass(clazz.getName());
         invocation.setUuid(RandomUtil.randomNumbers(6));
-        // 2. 通知异步线程可以发送了
+        // 2. 把即将要发送的请求的序列号填充到哈希表中, 确保接收的时候是对应的
         RESPONSE_CACHE.put(invocation.getUuid(), "");
+        // 3. 把将要发送的请求放在消息队列中, 然后让异步线程来获取
         SEND_MESSAGE_QUEUE.put(invocation);
-        // 3. 动态代理对象等待返回结果
+        // 4. 动态代理对象等待返回结果
         LocalDateTime begin = LocalDateTime.now();
         log.debug("begin: {}", begin);
-        // 4. 如果当前时间始终在超时时间之前, 那么就持续轮询, 看是否有结果返回
+        // 5. 如果当前时间始终在超时时间之前, 那么就持续轮询, 看是否有结果返回
         while (LocalDateTime.now().isBefore(begin.plusMinutes(CALL_TIME_OUT))){
             Object result = RESPONSE_CACHE.get(invocation.getUuid());
             if (result instanceof NeptuneRpcInvocation){
@@ -56,7 +53,7 @@ public class JdkDynamicProxy implements InvocationHandler {
                 return ((NeptuneRpcInvocation) result).getResponse();
             }
         }
-        // 5. 如果超时那么就直接抛出异常
+        // 6. 如果超时那么就直接抛出异常
         throw new TimeoutException("[Neptune RPC Client]: 调用超时");
     }
 

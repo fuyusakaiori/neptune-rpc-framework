@@ -11,7 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * <h3>缓冲区</h3>
  */
-public class NeptuneRpcMessageCache {
+public class NeptuneRpcClientCache
+{
 
     public static final BlockingQueue<NeptuneRpcInvocation> SEND_MESSAGE_QUEUE
             = new ArrayBlockingQueue<>(ClientConfigConstant.SEND_MESSAGE_QUEUE_SIZE);

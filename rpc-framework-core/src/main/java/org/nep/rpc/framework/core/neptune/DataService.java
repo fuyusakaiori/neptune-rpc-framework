@@ -16,6 +16,12 @@ public class DataService implements IDataService {
     }
 
     @Override
+    public String send(int request) {
+        log.info("[Neptune RPC Server]: {}", request);
+        return "success";
+    }
+
+    @Override
     public List<String> receive() {
         return Arrays.asList("first", "second", "third");
     }

@@ -12,6 +12,8 @@ public interface IDataService {
      */
     String send(String request);
 
+    String send(int request);
+
     /**
      * <h3>接收消息</h3>
      */

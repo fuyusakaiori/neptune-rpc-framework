@@ -12,7 +12,7 @@ public class ClientBootStrap {
         NeptuneRpcReference reference = neptuneRpcClient.getReference();
         IDataService dataService = reference.remoteCall(IDataService.class);
         for (int index = 0; index < 10; index++) {
-            dataService.send("Hello Neptune RPC");
+            dataService.send(114514);
         }
         neptuneRpcClient.closeNeptune();
     }

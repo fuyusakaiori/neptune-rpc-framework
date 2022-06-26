@@ -1,0 +1,91 @@
+package rpc;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.RandomUtil;
+import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxy;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache.SEND_MESSAGE_QUEUE;
+
+@Slf4j
+@SuppressWarnings("unchecked")
+public class NeptuneRpcFrameworkTest
+{
+
+    @Test
+    public void dynamicTest(){
+        IHelloService proxy = getProxy(HelloService.class);
+        log.debug("proxy: {}", proxy);
+    }
+
+    public <T> T getProxy(Class<T> clazz) {
+        return (T) Proxy.newProxyInstance(
+                this.getClass().getClassLoader(), clazz.getInterfaces(), new JdkDynamicProxy(clazz));
+    }
+
+    @Test
+    public void messageQueueTest() throws InterruptedException {
+        NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
+        invocation.setArgs(null);
+        invocation.setTargetMethod(null);
+        invocation.setTargetClass(null);
+        invocation.setUuid(RandomUtil.randomNumbers(6));
+        SEND_MESSAGE_QUEUE.put(invocation);
+    }
+
+    @Test
+    public void jsonTest(){
+        System.out.println(JSON.toJSONString("Hello Neptune RPC").getBytes().length);
+    }
+
+    @Test
+    public void overloadTest() throws InvocationTargetException, IllegalAccessException {
+        log.debug("type: {}", Integer.class.getName());
+        String methodName = "method";
+        Object[] args = new Object[]{1};
+        Class<NeptuneRpcFrameworkTest> clazz = NeptuneRpcFrameworkTest.class;
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : methods) {
+            if (checkMethod(method, methodName, args)){
+                method.invoke(new NeptuneRpcFrameworkTest(), args);
+                break;
+            }
+        }
+    }
+
+    public boolean checkMethod(Method method, String methodName, Object[] args){
+        Map<String, String> map = new HashMap<>();
+        map.put("int", "java.lang.Integer");
+        if (!method.getName().equals(methodName))
+            return false;
+        if (method.getParameterCount() != args.length)
+            return false;
+        List<String> target = Arrays.stream(args)
+                        .map(arg -> arg.getClass().getTypeName())
+                        .collect(Collectors.toList());
+        List<String> source = Arrays.stream(method.getParameterTypes())
+                                       .map(parameter -> parameter.isPrimitive() ? map.get(parameter.getTypeName()): parameter.getTypeName())
+                                       .collect(Collectors.toList());
+        return CollectionUtil.containsAll(target, source);
+    }
+
+    public void method(int value){
+        log.info("int value: {}", value);
+    }
+
+    public void method(String value){
+        log.info("String value: {}", value);
+    }
+}

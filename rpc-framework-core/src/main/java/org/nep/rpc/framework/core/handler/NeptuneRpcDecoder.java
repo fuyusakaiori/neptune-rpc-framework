@@ -12,7 +12,8 @@ import java.util.List;
 
 /**
  * <h3>Neptune RPC 解码器</h3>
- * <h3>按照写入缓冲区的顺序从缓冲区中读取出来</h3>
+ * <h3>1. 按照写入缓冲区的顺序从缓冲区中读取出来</h3>
+ * TODO <h3>2. 如果魔数字段或者版本字段之类的不合理, 那么应该要进行处理</h3>
  */
 @Slf4j
 public class NeptuneRpcDecoder extends ByteToMessageDecoder {
