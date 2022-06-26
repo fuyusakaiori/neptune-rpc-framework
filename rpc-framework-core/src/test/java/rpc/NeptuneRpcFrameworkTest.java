@@ -53,6 +53,7 @@ public class NeptuneRpcFrameworkTest
     @Test
     public void overloadTest() throws InvocationTargetException, IllegalAccessException {
         log.debug("type: {}", Integer.class.getName());
+        log.debug("{}", null + "");
         String methodName = "method";
         Object[] args = new Object[]{1};
         Class<NeptuneRpcFrameworkTest> clazz = NeptuneRpcFrameworkTest.class;
