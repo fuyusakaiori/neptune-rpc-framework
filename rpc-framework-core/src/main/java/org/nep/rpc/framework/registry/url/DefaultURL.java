@@ -27,8 +27,7 @@ public class DefaultURL implements URL {
     private String applicationName;
 
     private String address;
-
-    private String port;
+    private int port;
 
     /**
      * <h3>服务其它参数: </h3>

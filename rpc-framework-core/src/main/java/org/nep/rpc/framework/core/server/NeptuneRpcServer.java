@@ -7,17 +7,22 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.common.constant.ServerConfigConstant;
+import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
 import org.nep.rpc.framework.core.neptune.DataService;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
+import org.nep.rpc.framework.registry.service.RegistryService;
+import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
+import org.nep.rpc.framework.registry.url.DefaultURL;
+import org.nep.rpc.framework.registry.url.URL;
 
 import java.net.InetSocketAddress;
 
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.DEFAULT_SERVER_PORT;
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.PRIMITIVE_TO_WRAPPER;
+import static org.nep.rpc.framework.core.common.constant.CommonConstant.*;
 
 /**
  * <h3>Neptune RPC 服务器</h3>
@@ -35,22 +40,23 @@ public class NeptuneRpcServer {
         PRIMITIVE_TO_WRAPPER.put("long", Long.class.getName());
         PRIMITIVE_TO_WRAPPER.put("char", Character.class.getName());
     }
-
-    // 服务器端口号
-    private final int port;
     // 负责处理连接事件的循环事件组
     private EventLoopGroup boss;
     // 负责处理其他事件的循环事件组
     private EventLoopGroup worker;
-
     private ChannelFuture future;
+    // 注册中心
+    private final RegistryService registryService;
+    // 服务器端配置类
+    private final NeptuneRpcServerConfig config;
 
     public NeptuneRpcServer(){
-        this(DEFAULT_SERVER_PORT);
+        this(PropertyBootStrap.loadServerConfiguration());
     }
 
-    public NeptuneRpcServer(int port){
-        this.port = port;
+    public NeptuneRpcServer(NeptuneRpcServerConfig config){
+        this.config = config;
+        this.registryService = new NeptuneZookeeperRegister(config.getRegistry());
     }
 
 
@@ -85,7 +91,7 @@ public class NeptuneRpcServer {
                             channel.pipeline().addLast(new NeptuneRpcServerHandler());
                         }
                     });
-            future = server.bind(new InetSocketAddress(port)).sync();
+            future = server.bind(new InetSocketAddress(config.getPort())).sync();
             log.info("[Neptune RPC Server]: 服务器启动成功");
             // 注: 服务器同步等待关闭: 如果在某个地方调用 close 方法, 那么服务器就会直接关闭
             future.channel().closeFuture().sync();
@@ -126,6 +132,17 @@ public class NeptuneRpcServer {
         }
         // 3. 如果符合条件, 那么就将对外提供的接口名字和实现类对象放入缓存中
         NeptuneRpcServerCache.registryInCache(interfaces[0].getName(), target);
+        // 4. 向注册中心添加 URL
+        NeptuneRpcServerCache.registerInCache(getUrl(config, interfaces));
+    }
+
+    private URL getUrl(NeptuneRpcServerConfig config, Class<?>[] interfaces){
+        URL url = new DefaultURL();
+        url.setPort(config.getPort());
+        url.setApplicationName(config.getApplication());
+        url.setAddress(DEFAULT_SERVER_ADDRESS);
+        url.setServiceName(interfaces[0].getName());
+        return url;
     }
 
 }

@@ -13,9 +13,17 @@ public interface URL {
 
     String getAddress();
 
-    String getPort();
+    int getPort();
 
     Map<String, Object> getParameters();
+
+    void setApplicationName(String applicationName);
+
+    void setServiceName(String serviceName);
+
+    void setAddress(String address);
+
+    void setPort(int port);
 
     String toProviderString();
 
