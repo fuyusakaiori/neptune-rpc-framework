@@ -1,9 +1,11 @@
 package org.nep.rpc.framework.registry.service;
 
+import com.sun.org.apache.bcel.internal.generic.PUSH;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.registry.url.URL;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +15,7 @@ import java.util.Set;
 @Slf4j
 public abstract class AbstractRegister implements RegistryService {
 
-    // 存储已经注册的服务的结点地址 需要考虑并发吗?
+    // 存储已经注册的服务的结点地址; 1.需要考虑并发吗? 2.为什么需要存储在本地?
     private static final Set<URL> PROVIDER_URL_SET = new HashSet<>();
 
     @Override
@@ -36,5 +38,10 @@ public abstract class AbstractRegister implements RegistryService {
 
     }
 
+    public abstract void beforeSubscribe(URL url);
+
+    public abstract void afterSubscribe(URL url);
+
+    public abstract List<String> getServiceAllNodes();
 
 }

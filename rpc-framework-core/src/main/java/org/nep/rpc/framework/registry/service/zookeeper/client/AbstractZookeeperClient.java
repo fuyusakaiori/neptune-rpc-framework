@@ -4,15 +4,11 @@ import lombok.Data;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundCallback;
-import org.apache.curator.framework.recipes.cache.CuratorCache;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 
 import java.util.List;
-
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.*;
 
 /**
  * <h3>zookeeper 客户端模板</h3>
@@ -75,7 +71,7 @@ public abstract class AbstractZookeeperClient {
      * <h3>1. 默认创建持久化结点</h3>
      * <h3>2. 结点携带数据</h3>
      */
-    public abstract void createNodeWithNode(String path, String data);
+    public abstract void createNodeWithData(String path, String data);
 
     /**
      * <h3>1. 指定创建的结点类型</h3>
@@ -107,8 +103,19 @@ public abstract class AbstractZookeeperClient {
 
     /**
      * <h3>添加监听器</h3>
+     * <h3>1. 监听单个结点</h3>
+     * <h3>2. 监听结点的所有子结点</h3>
+     * <h3>3. 监听当前结点及其子结点</h3>
+     * <h3>4. 标准监听器</h3>
+     * <h3>注: CuratorCache 还提供了三种方式去监听, 这里还是按照老方式进行提供</h3>
      */
-    public abstract void addNodeWatcher(String path, Watcher watcher);
+    public abstract void addNodeWatcher(String path);
+
+    public abstract void addChildrenNodeWatcher(String path);
+
+    public abstract void addTreeNodeWatcher(String path);
+
+    public abstract void addStanderWatcher(String path);
 
     public abstract boolean existNode(String path);
 

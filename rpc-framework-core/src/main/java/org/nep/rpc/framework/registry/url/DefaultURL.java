@@ -1,11 +1,9 @@
 package org.nep.rpc.framework.registry.url;
 
-import cn.hutool.core.collection.CollectionUtil;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -16,66 +14,52 @@ import java.util.Map;
 @ToString
 public class DefaultURL implements URL {
 
-    public static final String SEPERATOR = ";";
-    /**
-     * <h3>服务名称</h3>
-     */
-    private String applicationName;
+    public static final String SEMICOLON = ";";
 
     /**
-     * <h3>调用的接口名称</h3>
+     * <h3>注册的服务名称</h3>
      */
     private String serviceName;
 
     /**
-     * <h3>服务其它参数: </h3>
-     * <h3>1. 服务 IP 地址</h3>
-     * <h3>2. 服务端口号</h3>
-     * <h3>3. 服务权重</h3>
-     * <h3>4. ...</h3>
+     * <h3>调用服务的客户端名称; 服务提供者的 {@code applicationName} 和 {@code serviceName} 相同</h3>
      */
-    private Map<String, Object> params;
+    private String applicationName;
 
-    public DefaultURL(String applicationName, String serviceName) {
-        this(applicationName, serviceName, Collections.emptyMap());
-    }
+    private String address;
 
-    public DefaultURL(String applicationName, String serviceName, Map<String, Object> params) {
-        this.applicationName = applicationName;
-        this.serviceName = serviceName;
-        this.params = params;
-    }
+    private String port;
 
     /**
-     * <h3>URL 转换为提供者的结点名称</h3>
+     * <h3>服务其它参数: </h3>
+     * <h3>1. 服务权重</h3>
+     * <h3>2. ...</h3>
+     */
+    private Map<String, Object> parameters;
+
+    /**
+     * <h3>服务提供者 URL 转为字符串 => 作为数据存储在结点中</h3>
      */
     public String toProviderString(){
-        // 1. 获取服务的端口号和 IP 地址
-        String host = String.valueOf(params.get("host"));
-        String port = String.valueOf(params.get("port"));
-        // 2. 转换为字符串 为什么这里用 StringBuilder 会提示换成 String?
-        return applicationName + SEPERATOR
-                       + serviceName + SEPERATOR
-                       + host + SEPERATOR
-                       + port + SEPERATOR
+        return applicationName + SEMICOLON
+                       + serviceName + SEMICOLON
+                       + address + SEMICOLON
+                       + port + SEMICOLON
                        + System.currentTimeMillis();
     }
 
     /**
-     * <h3>URL 转换为消费者的结点名称</h3>
+     * <h3>服务消费者 URL 转为字符串 => 作为数据存储在结点中</h3>
      */
     public String toConsumerString(){
-        // 1. 只需要获取端口号 为什么不需要 IP 地址呢?
-        String port = String.valueOf(params.get("port"));
-        // 2. 转换成字符串
-        return applicationName + SEPERATOR
-                + serviceName + SEPERATOR
-                + port + SEPERATOR
+        return applicationName + SEMICOLON
+                + serviceName + SEMICOLON
+                + port + SEMICOLON
                 + System.currentTimeMillis();
     }
 
     public void addParameter(String key, Object value){
-        params.putIfAbsent(key, value);
+        parameters.putIfAbsent(key, value);
     }
 
 }
