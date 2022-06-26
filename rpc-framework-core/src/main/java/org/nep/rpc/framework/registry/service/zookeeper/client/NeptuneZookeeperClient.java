@@ -6,11 +6,9 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.BackgroundCallback;
-import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
-import org.nep.rpc.framework.registry.service.zookeeper.AbstractZookeeperClient;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

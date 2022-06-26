@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.registry.service.zookeeper;
+package org.nep.rpc.framework.registry.service.zookeeper.client;
 
 import lombok.Data;
 import org.apache.curator.RetryPolicy;
