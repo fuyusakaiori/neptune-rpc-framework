@@ -3,6 +3,7 @@ package org.nep.rpc.framework.registry.service.zookeeper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.zookeeper.CreateMode;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
 import org.nep.rpc.framework.registry.service.RegistryService;
 import org.nep.rpc.framework.registry.service.zookeeper.client.AbstractZookeeperClient;
@@ -28,12 +29,8 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     private static final String SLASH = "/";
     private static final String COLON = ":";
 
-    public NeptuneZookeeperRegister(String connectString) {
-        this.zookeeperClient = new NeptuneZookeeperClient(connectString);
-    }
-
-    public NeptuneZookeeperRegister(String connectString, int connectTime, int sessionTime, RetryPolicy retryPolicy, String namespace) {
-        this.zookeeperClient = new NeptuneZookeeperClient(connectString, connectTime, sessionTime, retryPolicy, namespace);
+    public NeptuneZookeeperRegister(NeptuneRpcServerConfig config) {
+        this.zookeeperClient = new NeptuneZookeeperClient(config);
     }
 
     @Override

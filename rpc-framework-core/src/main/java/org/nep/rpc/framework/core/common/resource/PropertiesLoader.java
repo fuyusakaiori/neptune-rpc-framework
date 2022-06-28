@@ -3,8 +3,7 @@ package org.nep.rpc.framework.core.common.resource;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -54,6 +53,17 @@ public class PropertiesLoader {
             return null;
         cache.put(key, value);
         return Integer.valueOf(value);
+    }
+
+    public static Collection<String> getValues(String prefix){
+        Map<String, String> result = new HashMap<>();
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            String key = String.valueOf(entry.getKey());
+            if(key.contains(prefix))
+                result.put(key, String.valueOf(entry.getValue()));
+        }
+        cache.putAll(result);
+        return result.values();
     }
 
 

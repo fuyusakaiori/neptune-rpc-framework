@@ -1,12 +1,14 @@
 package org.nep.rpc.framework.registry.service.zookeeper.client;
 
 import lombok.Data;
+import lombok.ToString;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.BackgroundCallback;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
  * <h3>2. 封装原生方法</h3>
  */
 @Data
+@ToString
 public abstract class AbstractZookeeperClient {
     // 连接 zookeeper 服务端的地址: IP + 端口号
     private String connectString;
@@ -28,12 +31,18 @@ public abstract class AbstractZookeeperClient {
     // 命名空间
     private String namespace;
 
-    public AbstractZookeeperClient(String connectString, int connectTime, int sessionTime, RetryPolicy retryPolicy, String namespace) {
-        this.connectString = connectString;
-        this.connectTime = connectTime;
-        this.sessionTime = sessionTime;
-        this.retryPolicy = retryPolicy;
-        this.namespace = namespace;
+    AbstractZookeeperClient(){
+    }
+
+    public AbstractZookeeperClient(NeptuneRpcServerConfig config) {
+        if (config == null)
+            throw new RuntimeException("[Neptune RPC Server]: 注册中心配置文件为空");
+        NeptuneRpcRegisterConfig registerConfig = config.getConfig();
+        this.connectString = registerConfig.getRegistry();
+        this.connectTime = registerConfig.getConnectTime();
+        this.sessionTime = registerConfig.getSessionTime();
+        this.retryPolicy = registerConfig.getRetryPolicy();
+        this.namespace = registerConfig.getNamespace();
     }
 
     /**

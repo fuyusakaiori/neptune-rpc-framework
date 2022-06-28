@@ -18,12 +18,6 @@ public class CommonConstant {
     public static final int CALL_TIME_OUT = 10;
     // 基本数据类型转包装类
     public static final Map<String, String> PRIMITIVE_TO_WRAPPER = new HashMap<>();
-    // 连接超时时间
-    public static final int CONNECT_TIME_OUT = 15 * 1000;
-    // 会话保持时间
-    public static final int SESSION_KEEP_TIME = 60 * 1000;
-    // 默认命名空间
-    public static final String DEFAULT_NAMESPACE = "/";
-    // 默认重试策略
-    public static final RetryPolicy DEFAULT_RETRY_POLICY = new ExponentialBackoffRetry(1000, 10);
+    // 异步加载等待时间
+    public static final int ASYNC_REGISTRY_TIME_OUT = 5;
 }

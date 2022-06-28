@@ -19,6 +19,14 @@ public class NeptuneRpcServerCache {
     // 存储已经注册的服务的结点地址; 1.需要考虑并发吗? 2.为什么需要存储在本地?
     private static final Set<URL> PROVIDER_URL_SET = new HashSet<>();
 
+    public static boolean urlCacheIsEmpty(){
+        return PROVIDER_URL_SET.isEmpty();
+    }
+
+    public static Set<URL> getUrlSet(){
+        return PROVIDER_URL_SET;
+    }
+
     public static boolean removeFromCache(URL url){
         if (url == null)
             return false;

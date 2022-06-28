@@ -1,42 +1,37 @@
 package org.nep.rpc.framework.registry.service.zookeeper.client;
 
 import cn.hutool.core.collection.CollectionUtil;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.BackgroundCallback;
-import org.apache.curator.framework.recipes.cache.*;
+import org.apache.curator.framework.recipes.cache.CuratorCache;
+import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.*;
 
 /**
  * <h3>Neptune RPC Client</h3>
  */
 @Slf4j
+@ToString
 public class NeptuneZookeeperClient extends AbstractZookeeperClient {
 
     private final CuratorFramework zookeeperClient;
 
-    public NeptuneZookeeperClient(String connectString) {
-        this(connectString, CONNECT_TIME_OUT, SESSION_KEEP_TIME,
-                DEFAULT_RETRY_POLICY, DEFAULT_NAMESPACE);
-    }
-
-    public NeptuneZookeeperClient(String connectString, int connectTime, int sessionTime, RetryPolicy retryPolicy, String namespace) {
-        super(connectString, connectTime, sessionTime, retryPolicy, namespace);
+    public NeptuneZookeeperClient(NeptuneRpcServerConfig config) {
+        super(config);
         this.zookeeperClient = CuratorFrameworkFactory.builder()
-                                       .connectString(connectString)
-                                       .connectionTimeoutMs(connectTime)
-                                       .sessionTimeoutMs(sessionTime)
-                                       .retryPolicy(retryPolicy)
-                                       .namespace(namespace)
+                                       .connectString(getConnectString())
+                                       .connectionTimeoutMs(getConnectTime())
+                                       .sessionTimeoutMs(getSessionTime())
+                                       .retryPolicy(getRetryPolicy())
+                                       .namespace(getNamespace())
                                        .build();
         // 注: 启动客户端
         if (zookeeperClient != null){

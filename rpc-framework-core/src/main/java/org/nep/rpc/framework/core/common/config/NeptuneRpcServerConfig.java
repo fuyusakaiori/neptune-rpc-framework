@@ -10,9 +10,9 @@ import lombok.ToString;
 @ToString
 public class NeptuneRpcServerConfig {
     // 服务端使用的端口号
-    private Integer port;
-    // 服务端使用的注册中心地址
-    private String registry;
+    private Integer port = 114514;
+    // 服务端注册中心的配置
+    private NeptuneRpcRegisterConfig config;
     // 服务端的名称
     private String application;
 

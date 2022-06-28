@@ -3,14 +3,19 @@ package rpc;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.junit.jupiter.api.Test;
+import org.nep.rpc.framework.core.client.NeptuneRpcClient;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxy;
+import org.nep.rpc.framework.registry.service.zookeeper.client.NeptuneZookeeperClient;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -94,10 +99,17 @@ public class NeptuneRpcFrameworkTest
     }
 
     @Test
-    public void propertiesTest(){
+    public void propertiesTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
+    {
         NeptuneRpcServerConfig serverConfig = PropertyBootStrap.loadServerConfiguration();
         log.debug("sever config application: {}", serverConfig.getApplication());
-        log.debug("sever config registry: {}", serverConfig.getRegistry());
+        log.debug("sever config registry address: {}", serverConfig.getConfig().getRegistry());
+        log.debug("sever config registry connectTime: {}", serverConfig.getConfig().getConnectTime());
+        log.debug("sever config registry sessionTime: {}", serverConfig.getConfig().getSessionTime());
+        log.debug("sever config registry nameSpace: {}", serverConfig.getConfig().getNamespace());
+        log.debug("sever config registry policy: {}", serverConfig.getConfig().getRetryPolicy());
         log.debug("sever config port: {}", serverConfig.getPort());
+        NeptuneZookeeperClient client = new NeptuneZookeeperClient(serverConfig);
+        log.debug("client: {}", client);
     }
 }
