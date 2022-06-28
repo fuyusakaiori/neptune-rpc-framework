@@ -5,6 +5,9 @@ import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
+import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxy;
 
@@ -88,5 +91,13 @@ public class NeptuneRpcFrameworkTest
 
     public void method(String value){
         log.info("String value: {}", value);
+    }
+
+    @Test
+    public void propertiesTest(){
+        NeptuneRpcServerConfig serverConfig = PropertyBootStrap.loadServerConfiguration();
+        log.debug("sever config application: {}", serverConfig.getApplication());
+        log.debug("sever config registry: {}", serverConfig.getRegistry());
+        log.debug("sever config port: {}", serverConfig.getPort());
     }
 }

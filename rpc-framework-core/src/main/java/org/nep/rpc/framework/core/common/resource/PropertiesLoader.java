@@ -39,8 +39,8 @@ public class PropertiesLoader {
             return cache.get(key);
         String value = properties.getProperty(key);
         if (value != null)
-            return cache.put(key, value);
-        return null;
+            cache.put(key, value);
+        return value;
     }
 
     /**
