@@ -61,7 +61,8 @@ public class PropertyBootStrap {
             throw new RuntimeException("[Neptune RPC Configuration]: 客户端加载配置文件出现异常", e);
         }
         NeptuneRpcClientConfig config = new NeptuneRpcClientConfig();
-        config.setRegistry(PropertiesLoader.getString(REGISTER_ADDRESS));
+        config.setPort(PropertiesLoader.getInt(SERVER_PORT));
+        config.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
         config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
         config.setProxy(PropertiesLoader.getString(PROXY_TYPE));
         return config;

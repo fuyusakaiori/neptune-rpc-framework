@@ -10,6 +10,7 @@ import org.apache.curator.framework.recipes.cache.CuratorCache;
 import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 
 import java.nio.charset.StandardCharsets;
@@ -24,7 +25,7 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
 
     private final CuratorFramework zookeeperClient;
 
-    public NeptuneZookeeperClient(NeptuneRpcServerConfig config) {
+    public NeptuneZookeeperClient(NeptuneRpcRegisterConfig config) {
         super(config);
         this.zookeeperClient = CuratorFrameworkFactory.builder()
                                        .connectString(getConnectString())

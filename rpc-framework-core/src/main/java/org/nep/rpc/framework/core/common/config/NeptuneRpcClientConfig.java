@@ -4,8 +4,12 @@ import lombok.Data;
 
 @Data
 public class NeptuneRpcClientConfig {
-    // 客户端使用的注册中心地址
-    private String registry;
+    // 服务端 IP 地址
+    private String address;
+    // 服务端端口号
+    private Integer port;
+    // 客户端访问的注册中心
+    private NeptuneRpcRegisterConfig registerConfig;
     // 客户端名称
     private String application;
     // 客户端使用动态代理模式

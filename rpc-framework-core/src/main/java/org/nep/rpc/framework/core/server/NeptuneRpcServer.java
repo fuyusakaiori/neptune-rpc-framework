@@ -65,7 +65,7 @@ public class NeptuneRpcServer {
      */
     public void startNeptune() {
         // 0. 初始化注册中心
-        registryService = new NeptuneZookeeperRegister(config);
+        registryService = new NeptuneZookeeperRegister(config.getConfig());
         // 1. 初始化服务器
         ServerBootstrap server = new ServerBootstrap();
         // 2. 初始化事件循环组
@@ -137,7 +137,7 @@ public class NeptuneRpcServer {
         // 3. 如果符合条件, 那么就将对外提供的接口名字和实现类对象放入缓存中
         NeptuneRpcServerCache.registryInCache(interfaces[0].getName(), target);
         // 4. 将对外提供的服务 (接口 / 类) 生成对应的 URL 后存储在本地缓存中
-        NeptuneRpcServerCache.registerInCache(getUrl(config, interfaces));
+        NeptuneRpcServerCache.registerInCache(getUrl(interfaces));
     }
 
     /**
@@ -166,7 +166,7 @@ public class NeptuneRpcServer {
     /**
      * <h3>生成 URL</h3>
      */
-    private URL getUrl(NeptuneRpcServerConfig config, Class<?>[] interfaces){
+    private URL getUrl(Class<?>[] interfaces){
         URL url = new DefaultURL();
         // 1. 从配置中获取服务器端口号
         url.setPort(config.getPort());

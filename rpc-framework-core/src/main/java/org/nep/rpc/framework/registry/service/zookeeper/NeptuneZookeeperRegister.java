@@ -2,7 +2,7 @@ package org.nep.rpc.framework.registry.service.zookeeper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
-import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
 import org.nep.rpc.framework.registry.service.RegistryService;
 import org.nep.rpc.framework.registry.service.zookeeper.client.AbstractZookeeperClient;
@@ -25,7 +25,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     private static final String SLASH = "/";
     private static final String COLON = ":";
 
-    public NeptuneZookeeperRegister(NeptuneRpcServerConfig config) {
+    public NeptuneZookeeperRegister(NeptuneRpcRegisterConfig config) {
         this.zookeeperClient = new NeptuneZookeeperClient(config);
     }
 

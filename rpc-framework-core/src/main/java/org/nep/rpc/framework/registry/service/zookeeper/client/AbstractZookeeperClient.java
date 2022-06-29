@@ -34,15 +34,14 @@ public abstract class AbstractZookeeperClient {
     AbstractZookeeperClient(){
     }
 
-    public AbstractZookeeperClient(NeptuneRpcServerConfig config) {
+    public AbstractZookeeperClient(NeptuneRpcRegisterConfig config) {
         if (config == null)
             throw new RuntimeException("[Neptune RPC Server]: 注册中心配置文件为空");
-        NeptuneRpcRegisterConfig registerConfig = config.getConfig();
-        this.connectString = registerConfig.getRegistry();
-        this.connectTime = registerConfig.getConnectTime();
-        this.sessionTime = registerConfig.getSessionTime();
-        this.retryPolicy = registerConfig.getRetryPolicy();
-        this.namespace = registerConfig.getNamespace();
+        this.connectString = config.getRegistry();
+        this.connectTime = config.getConnectTime();
+        this.sessionTime = config.getSessionTime();
+        this.retryPolicy = config.getRetryPolicy();
+        this.namespace = config.getNamespace();
     }
 
     /**

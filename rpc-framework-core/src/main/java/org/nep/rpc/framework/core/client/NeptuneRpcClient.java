@@ -9,7 +9,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
+import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.constant.ClientConfigConstant;
+import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcClientHandler;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
@@ -17,6 +19,10 @@ import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
+import org.nep.rpc.framework.registry.service.RegistryService;
+import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
+import org.nep.rpc.framework.registry.url.DefaultURL;
+import org.nep.rpc.framework.registry.url.URL;
 
 
 import java.net.InetSocketAddress;
@@ -27,31 +33,37 @@ import static org.nep.rpc.framework.core.common.constant.CommonConstant.*;
 
 @Slf4j
 public class NeptuneRpcClient {
-
-    private final int port;
-
-    private final String address;
-
     private EventLoopGroup worker;
 
     private ChannelFuture future;
+
+    private RegistryService registryService;
+
+    private NeptuneRpcClientConfig config;
     private NeptuneRpcReference reference;
 
+    private Bootstrap client;
+
     public NeptuneRpcClient(){
-        this(DEFAULT_SERVER_PORT, DEFAULT_SERVER_ADDRESS);
+        this(PropertyBootStrap.loadClientConfiguration());
     }
 
-    public NeptuneRpcClient(int port, String address) {
-        this.port = port;
-        this.address = address;
+    public NeptuneRpcClient(NeptuneRpcClientConfig config) {
+        this.config = config;
     }
 
     /**
      * <h3>启动客户端</h3>
      */
     public void startNeptune(){
+        if (registryService != null || client != null){
+            log.info("[Neptune RPC Client]: 客户端已经启动了, 请不要重复启动");
+            return;
+        }
+        // 0. 初始化注册中心
+        registryService = new NeptuneZookeeperRegister(config.getRegisterConfig());
         // 1. 初始化线程池
-        Bootstrap client = new Bootstrap();
+        client = new Bootstrap();
         worker = new NioEventLoopGroup(ClientConfigConstant.WORKER_THREAD_COUNT);
         try {
             // 2. 配置参数
@@ -67,7 +79,7 @@ public class NeptuneRpcClient {
                         }
                     });
             // 3. 启动客户端
-            future = client.connect(new InetSocketAddress(address, port)).sync();
+            future = client.connect(new InetSocketAddress(config.getAddress(), config.getPort())).sync();
             // 4. 开启异步线程发送数据
             asyncSend();
             // 5. 初始化调用者
@@ -75,6 +87,25 @@ public class NeptuneRpcClient {
         } catch (InterruptedException e) {
             log.error("[Neptune RPC Client]: 客户端启动异常", e);
         }
+    }
+
+    /**
+     * <h3>订阅服务: 将自己添加到注册中心</h3>
+     */
+    private void subscribeService(Class<?> service){
+        URL url = getUrl(service);
+        registryService.subscribe(url);
+        log.debug("[Neptune RPC Client]: 客户端注册服务");
+    }
+
+    private URL getUrl(Class<?> service){
+        URL url = new DefaultURL();
+        url.setPort(config.getPort());
+        // TODO 应该直接在配置文件中配置好, 暂时用于测试使用
+        url.setAddress(service.getName());
+        url.setAddress(config.getAddress());
+        url.setApplicationName(config.getApplication());
+        return url;
     }
 
     /**
