@@ -8,14 +8,10 @@ import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Parameter;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.DEFAULT_SERVER_PORT;
 
 /**
  * <h3>初始化配置类并返回</h3>
@@ -37,18 +33,21 @@ public class PropertyBootStrap {
      * <h3>返回服务器端的配置类</h3>
      */
     public static NeptuneRpcServerConfig loadServerConfiguration(){
+        NeptuneRpcServerConfig config = new NeptuneRpcServerConfig();
         try {
             PropertiesLoader.loadConfiguration();
+            // 1. 直接获取本机 IP 地址
+            config.setAddress(InetAddress.getLocalHost().getHostAddress());
+            // 2. 获取资源文件中配置端口号
+            config.setPort(PropertiesLoader.getInt(SERVER_PORT));
+            // 3. 获取资源文件中注册中心的相关配置
+            config.setConfig(loadNeptuneRpcRegisterConfiguration());
+            // 4. 获取资源文件中配置的服务名
+            config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
+            log.debug("config: {}", config);
         } catch (Exception e) {
             throw new RuntimeException("[Neptune RPC Configuration]: 服务器端加载配置文件出现异常", e);
         }
-        NeptuneRpcServerConfig config = new NeptuneRpcServerConfig();
-        // 注: 因为方法返回的是包装类, 但是字段是基本数据类型, 所以判断下
-        config.setPort(PropertiesLoader.getInt(SERVER_PORT));
-        // 注: 注册中心配置
-        config.setConfig(loadNeptuneRpcRegisterConfiguration());
-        config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
-        log.debug("config: {}", config);
         return config;
     }
 

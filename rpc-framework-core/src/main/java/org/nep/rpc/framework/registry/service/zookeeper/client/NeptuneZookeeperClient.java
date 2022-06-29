@@ -110,6 +110,9 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
         createNode(path, "", mode);
     }
 
+    /**
+     * <h3>注: 多级路径注意父结点是否存在</h3>
+     */
     @Override
     public void createNode(String path, String data, CreateMode mode) {
         if (data == null){
@@ -122,7 +125,7 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
         }
         try {
             String result = zookeeperClient
-                               .create()
+                               .create().creatingParentsIfNeeded()
                                .withMode(mode)
                                .forPath(path, data.getBytes(StandardCharsets.UTF_8));
             log.debug("[Neptune RPC Zookeeper]: CreateNode 创建的结点 {}", result);

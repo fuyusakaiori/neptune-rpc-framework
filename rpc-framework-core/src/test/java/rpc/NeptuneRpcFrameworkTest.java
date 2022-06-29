@@ -34,8 +34,7 @@ public class NeptuneRpcFrameworkTest
 
     @Test
     public void dynamicTest(){
-        IHelloService proxy = getProxy(HelloService.class);
-        log.debug("proxy: {}", proxy);
+
     }
 
     public <T> T getProxy(Class<T> clazz) {
@@ -99,8 +98,7 @@ public class NeptuneRpcFrameworkTest
     }
 
     @Test
-    public void propertiesTest() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException
-    {
+    public void propertiesTest(){
         NeptuneRpcServerConfig serverConfig = PropertyBootStrap.loadServerConfiguration();
         log.debug("sever config application: {}", serverConfig.getApplication());
         log.debug("sever config registry address: {}", serverConfig.getConfig().getRegistry());
@@ -110,6 +108,7 @@ public class NeptuneRpcFrameworkTest
         log.debug("sever config registry policy: {}", serverConfig.getConfig().getRetryPolicy());
         log.debug("sever config port: {}", serverConfig.getPort());
         NeptuneZookeeperClient client = new NeptuneZookeeperClient(serverConfig);
-        log.debug("client: {}", client);
+        client.createNode("/p1");
+
     }
 }

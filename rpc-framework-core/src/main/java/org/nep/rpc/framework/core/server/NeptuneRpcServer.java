@@ -145,6 +145,7 @@ public class NeptuneRpcServer {
      */
     private void registryServices(){
         new Thread(new AsyncRegistryTask()).start();
+        log.debug("[Neptune RPC Server]: 服务端异步线程启动");
     }
 
     private final class AsyncRegistryTask implements Runnable{
@@ -167,9 +168,13 @@ public class NeptuneRpcServer {
      */
     private URL getUrl(NeptuneRpcServerConfig config, Class<?>[] interfaces){
         URL url = new DefaultURL();
+        // 1. 从配置中获取服务器端口号
         url.setPort(config.getPort());
+        // 2. 从配置中获取服务器所在 IP 地址
+        url.setAddress(config.getAddress());
+        // 3. 从配置中获取服务器名称
         url.setApplicationName(config.getApplication());
-        url.setAddress(DEFAULT_SERVER_ADDRESS);
+        // 4. 从配置中获取服务器对外提供的服务
         url.setServiceName(interfaces[0].getName());
         return url;
     }

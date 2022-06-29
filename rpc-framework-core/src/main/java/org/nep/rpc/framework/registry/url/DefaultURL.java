@@ -17,22 +17,26 @@ public class DefaultURL implements URL {
     public static final String SEMICOLON = ";";
 
     /**
-     * <h3>注册的服务名称</h3>
+     * <h3>对外提供的接口或者类名称</h3>
      */
     private String serviceName;
 
     /**
-     * <h3>调用服务的客户端名称; 服务提供者的 {@code applicationName} 和 {@code serviceName} 相同</h3>
+     * <h3>消费者或者提供者的服务名称</h3>
      */
     private String applicationName;
-
+    /**
+     * <h3>IP 地址</h3>
+     */
     private String address;
+    /**
+     * <h3>端口号</h3>
+     */
     private int port;
 
     /**
      * <h3>服务其它参数: </h3>
      * <h3>1. 服务权重</h3>
-     * <h3>2. ...</h3>
      */
     private Map<String, Object> parameters;
 

@@ -1,7 +1,6 @@
 package org.nep.rpc.framework.registry.service.zookeeper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
 import org.apache.zookeeper.CreateMode;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
@@ -17,10 +16,7 @@ import java.util.List;
  */
 @Slf4j
 public class NeptuneZookeeperRegister extends AbstractRegister implements RegistryService {
-
     private final AbstractZookeeperClient zookeeperClient;
-    // 根目录
-    private static final String ROOT = "/neptune";
     // 消费者
     private static final String CONSUMER = "/consumer";
     // 提供者
@@ -33,12 +29,11 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
         this.zookeeperClient = new NeptuneZookeeperClient(config);
     }
 
+    /**
+     * <h3>注: 因为在创建客户端的时候就设置好了命名空间, 所以不需要判断根目录是否存在</h3>
+     */
     @Override
     public void register(URL url) {
-        // 0. 检查根路径是否存在
-        if (!zookeeperClient.existNode(ROOT)){
-            zookeeperClient.createNodeWithData(ROOT, "/neptune");
-        }
         // 1. 将原本的路径转换为字符串, 作为数据存储在结点中
         String data = url.toProviderString();
         // 2. 检查结点是否存在
@@ -62,14 +57,10 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
 
     @Override
     public void subscribe(URL url) {
-        // 1. 检查根结点是否存在
-        if (!zookeeperClient.existNode(ROOT)){
-            zookeeperClient.createNodeWithData(ROOT, "/neptune");
-        }
-        // 2. 将原本的路径转换为字符串, 作为数据存储在结点中
+        // 1. 将原本的路径转换为字符串, 作为数据存储在结点中
         String data = url.toConsumerString();
         String path = toConsumerPath(url);
-        // 3. 检查结点是否存在
+        // 2. 检查结点是否存在
         if (zookeeperClient.existNode(path)){
             log.debug("[Neptune RPC Zookeeper]: Subscribe 结点之前已经存在, 重新更新");
             zookeeperClient.deleteNode(path);
@@ -104,7 +95,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      */
     private String toProviderPath(URL url){
         log.debug("url: {}", url);
-        return ROOT + SLASH + url.getServiceName() + PROVIDER + SLASH
+        return SLASH + url.getServiceName() + PROVIDER + SLASH
                        + url.getAddress() + COLON + url.getPort();
     }
 
@@ -113,7 +104,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      */
     private String toConsumerPath(URL url){
         log.debug("url: {}", url);
-        return ROOT + SLASH + url.getServiceName() + CONSUMER + SLASH
+        return SLASH + url.getServiceName() + CONSUMER + SLASH
                 + url.getApplicationName() + COLON + url.getAddress() + COLON + url.getPort();
     }
 }
