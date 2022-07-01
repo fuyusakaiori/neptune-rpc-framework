@@ -2,6 +2,7 @@ package org.nep.rpc.framework.core.proxy.jdk;
 
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 
 import java.lang.reflect.InvocationHandler;
@@ -9,8 +10,6 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeoutException;
 
-import static org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache.RESPONSE_CACHE;
-import static org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache.SEND_MESSAGE_QUEUE;
 import static org.nep.rpc.framework.core.common.constant.CommonConstant.CALL_TIME_OUT;
 
 /**
@@ -39,15 +38,15 @@ public class JdkDynamicProxy implements InvocationHandler {
         invocation.setTargetClass(clazz.getName());
         invocation.setUuid(RandomUtil.randomNumbers(6));
         // 2. 把即将要发送的请求的序列号填充到哈希表中, 确保接收的时候是对应的
-        RESPONSE_CACHE.put(invocation.getUuid(), "");
+        NeptuneRpcClientCache.Windows.put(invocation.getUuid(), "");
         // 3. 把将要发送的请求放在消息队列中, 然后让异步线程来获取
-        SEND_MESSAGE_QUEUE.put(invocation);
+        NeptuneRpcClientCache.MessageQueue.send(invocation);
         // 4. 动态代理对象等待返回结果
         LocalDateTime begin = LocalDateTime.now();
         log.debug("begin: {}", begin);
         // 5. 如果当前时间始终在超时时间之前, 那么就持续轮询, 看是否有结果返回
         while (LocalDateTime.now().isBefore(begin.plusMinutes(CALL_TIME_OUT))){
-            Object result = RESPONSE_CACHE.get(invocation.getUuid());
+            Object result = NeptuneRpcClientCache.Windows.get(invocation.getUuid());
             if (result instanceof NeptuneRpcInvocation){
                 log.debug("[Neptune RPC Client]: 服务器响应 {}", result);
                 return ((NeptuneRpcInvocation) result).getResponse();

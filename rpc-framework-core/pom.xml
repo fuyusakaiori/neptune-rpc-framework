@@ -20,6 +20,9 @@
         <hessian.version>4.0.66</hessian.version>
         <fastjson.version>2.0.7</fastjson.version>
         <hutool.version>5.8.3</hutool.version>
+        <zookeeper.version>3.8.0</zookeeper.version>
+        <curator.version>5.2.1</curator.version>
+        <curator.recipes.version>5.2.1</curator.recipes.version>
     </properties>
 
     <!-- maven 编译器设置为 JDK 8 -->
@@ -128,6 +131,26 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.8.2</version>
+        </dependency>
+
+        <!-- zookeeper -->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
+        </dependency>
+
+        <!-- curator framework-->
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${curator.recipes.version}</version>
         </dependency>
 
         <dependency>
