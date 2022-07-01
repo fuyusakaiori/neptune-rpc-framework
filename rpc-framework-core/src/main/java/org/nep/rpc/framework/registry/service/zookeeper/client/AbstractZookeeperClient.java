@@ -123,8 +123,6 @@ public abstract class AbstractZookeeperClient {
 
     public abstract void addTreeNodeWatcher(String path);
 
-    public abstract void addStanderWatcher(String path);
-
     public abstract boolean existNode(String path);
 
 }

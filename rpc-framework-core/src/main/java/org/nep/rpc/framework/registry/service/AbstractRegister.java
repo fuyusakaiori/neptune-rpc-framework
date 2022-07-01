@@ -1,6 +1,7 @@
 package org.nep.rpc.framework.registry.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.registry.url.URL;
 
@@ -25,17 +26,19 @@ public abstract class AbstractRegister implements RegistryService {
 
     @Override
     public void subscribe(URL url) {
-
+        NeptuneRpcClientCache.Subscriber.subscribe(url);
     }
 
     @Override
     public void unSubscribe(URL url) {
-
+        NeptuneRpcClientCache.Subscriber.cancel(url);
     }
 
     public abstract void beforeSubscribe(URL url);
 
     public abstract void afterSubscribe(URL url);
+
+    public abstract List<String> providers(String serviceName);
 
     public abstract List<String> getServiceAllNodes();
 

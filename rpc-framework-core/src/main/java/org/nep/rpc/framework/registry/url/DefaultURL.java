@@ -1,10 +1,12 @@
 package org.nep.rpc.framework.registry.url;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * <h3>默认的结点格式</h3>
@@ -65,4 +67,16 @@ public class DefaultURL implements URL {
         parameters.putIfAbsent(key, value);
     }
 
+    @Override
+    public boolean equals(Object source) {
+        if (this == source)
+            return true;
+        if (source == null || getClass() != source.getClass())
+            return false;
+        DefaultURL url = (DefaultURL) source;
+        return port == url.port
+                       && serviceName.equals(url.serviceName)
+                       && applicationName.equals(url.applicationName)
+                       && address.equals(url.address);
+    }
 }

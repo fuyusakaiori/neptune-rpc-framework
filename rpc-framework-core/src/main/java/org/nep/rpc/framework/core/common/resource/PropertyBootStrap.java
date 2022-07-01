@@ -27,6 +27,7 @@ public class PropertyBootStrap {
     private static final String REGISTER_CONFIG_SESSION_TIME = "neptune.register.session.time";
     private static final String REGISTER_CONFIG_NAMESPACE = "neptune.register.namespace";
     private static final String REGISTER_CONFIG_RETRY_POLICY = "neptune.register.retry.policy";
+    public static final String ADDRESS = "127.0.0.1";
 
 
     /**
@@ -36,8 +37,8 @@ public class PropertyBootStrap {
         NeptuneRpcServerConfig config = new NeptuneRpcServerConfig();
         try {
             PropertiesLoader.loadConfiguration();
-            // 1. 直接获取本机 IP 地址
-            config.setAddress(InetAddress.getLocalHost().getHostAddress());
+            // 1. 直接获取本机 IP 地址 InetAddress.getLocalHost().getHostAddress()
+            config.setAddress(ADDRESS);
             // 2. 获取资源文件中配置端口号
             config.setPort(PropertiesLoader.getInt(SERVER_PORT));
             // 3. 获取资源文件中注册中心的相关配置
@@ -61,10 +62,12 @@ public class PropertyBootStrap {
             throw new RuntimeException("[Neptune RPC Configuration]: 客户端加载配置文件出现异常", e);
         }
         NeptuneRpcClientConfig config = new NeptuneRpcClientConfig();
+        config.setAddress(ADDRESS);
         config.setPort(PropertiesLoader.getInt(SERVER_PORT));
         config.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
         config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
         config.setProxy(PropertiesLoader.getString(PROXY_TYPE));
+        log.debug("config: {}", config);
         return config;
     }
 

@@ -80,9 +80,27 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
 
     }
 
+    /**
+     * <h3>订阅服务之后就需要监听这个服务, 防止发生变动</h3>
+     */
     @Override
     public void afterSubscribe(URL url) {
+        log.debug("path: {}", SLASH + url.getServiceName() + PROVIDER);
+        zookeeperClient.addChildrenNodeWatcher(SLASH + url.getServiceName() + PROVIDER);
+    }
 
+    /**
+     * <h3>根据服务名找到所有提供这个服务的服务器</h3>
+     */
+    @Override
+    public List<String> providers(String serviceName) {
+        if (serviceName == null){
+            log.error("[Neptune RPC Zookeeper]: 服务名不可以为空");
+            return null;
+        }
+        String path = SLASH + serviceName + PROVIDER;
+        log.debug("path: {}", path);
+        return zookeeperClient.getChildrenNode(path);
     }
 
     @Override

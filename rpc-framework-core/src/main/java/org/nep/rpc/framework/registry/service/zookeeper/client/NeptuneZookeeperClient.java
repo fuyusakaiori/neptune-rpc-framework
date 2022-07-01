@@ -11,7 +11,9 @@ import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
-import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
+import org.nep.rpc.framework.registry.listener.ChildrenNodeListener;
+import org.nep.rpc.framework.registry.listener.NodeListener;
+import org.nep.rpc.framework.registry.listener.TreeNodeListener;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -179,52 +181,38 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
     @Override
     public void addNodeWatcher(String path) {
         // 1. 封装成结点
-        try (CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build()) {
-            // 2. 创建监听器
-            CuratorCacheListener listener = CuratorCacheListener.builder().forNodeCache(() -> {
-                // TODO 事件处理
-
-            }).build();
-            // 3. 添加监听器
-            curatorCache.listenable().addListener(listener);
-            // 4. 启动监听器
-            curatorCache.start();
-        }
+        CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build();
+        // 2. 创建监听器
+        CuratorCacheListener listener = CuratorCacheListener.builder()
+                                                .forNodeCache(new NodeListener()).build();
+        // 3. 添加监听器
+        curatorCache.listenable().addListener(listener);
+        // 4. 启动监听器
+        curatorCache.start();
     }
 
     @Override
     public void addChildrenNodeWatcher(String path) {
-        try (CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build()){
-            CuratorCacheListener listener = CuratorCacheListener.builder()
-                                                    .forPathChildrenCache(path, zookeeperClient, (client, event) -> {
-                // TODO 事件处理
-            }).build();
-            curatorCache.listenable().addListener(listener);
-            curatorCache.start();
-        }
+        // 1. 构建监听根结点
+        CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build();
+        // 2. 构建监听器
+        CuratorCacheListener listener =
+                CuratorCacheListener.builder()
+                        .forPathChildrenCache(
+                                path, zookeeperClient, new ChildrenNodeListener()).build();
+        // 3. 添加监听器然后启动
+        curatorCache.listenable().addListener(listener);
+        curatorCache.start();
+        // TODO 4. 不要关闭监听器, 否则启动之后就会立刻关闭, 之后考虑下如何关闭监听器
     }
 
     @Override
     public void addTreeNodeWatcher(String path) {
-        try(CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build()){
-            CuratorCacheListener listener = CuratorCacheListener.builder()
-                                                    .forTreeCache(zookeeperClient, (client, event) -> {
-                // TODO 事件处理
-            }).build();
-            curatorCache.listenable().addListener(listener);
-            curatorCache.start();
-        }
-    }
-
-    @Override
-    public void addStanderWatcher(String path) {
-        try(CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build()){
-            CuratorCacheListener listener = CuratorCacheListener.builder().forAll((type, oldData, curData) -> {
-
-            }).build();
-            curatorCache.listenable().addListener(listener);
-            curatorCache.start();
-        }
+        CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build();
+        CuratorCacheListener listener = CuratorCacheListener.builder()
+                                                .forTreeCache(zookeeperClient, new TreeNodeListener()).build();
+        curatorCache.listenable().addListener(listener);
+        curatorCache.start();
     }
 
     @Override
