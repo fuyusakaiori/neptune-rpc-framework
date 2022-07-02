@@ -21,7 +21,6 @@ import org.nep.rpc.framework.registry.url.DefaultURL;
 import org.nep.rpc.framework.registry.url.URL;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeUnit;
 
 import static org.nep.rpc.framework.core.common.constant.CommonConstant.*;
 
@@ -48,6 +47,8 @@ public class NeptuneRpcServer {
     private ChannelFuture future;
     // 注册中心
     private RegistryService registryService;
+    // 服务端
+    private ServerBootstrap server;
     // 服务器端配置类
     private final NeptuneRpcServerConfig config;
 
@@ -67,7 +68,7 @@ public class NeptuneRpcServer {
         // 0. 初始化注册中心
         registryService = new NeptuneZookeeperRegister(config.getConfig());
         // 1. 初始化服务器
-        ServerBootstrap server = new ServerBootstrap();
+        server = new ServerBootstrap();
         // 2. 初始化事件循环组
         boss = new NioEventLoopGroup(ServerConfigConstant.BOSS_THREAD_COUNT);
         worker = new NioEventLoopGroup(ServerConfigConstant.WORKER_THREAD_COUNT);
@@ -79,18 +80,19 @@ public class NeptuneRpcServer {
                 .option(ChannelOption.SO_KEEPALIVE, true); // 2.5 如果超过两个小时没有数据发送, 那么就会发送探测报文
         // TODO 注: 缓存对外提供的接口 硬编码, 用于测试使用
         registryClass(new DataService());
+        // 4. 服务注册
         registryServices();
-        // 4. 启动服务器
+        // 5. 启动服务器
         try {
             server.group(boss, worker)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<NioSocketChannel>() {
                         @Override
                         protected void initChannel(NioSocketChannel channel) throws Exception {
-                            // 5. 添加处理器
-                            channel.pipeline().addLast(new NeptuneRpcFrameDecoder()); // 4.1 定长解码器 防止黏包和半包问题
-                            channel.pipeline().addLast(new NeptuneRpcEncoder()); // 4.2 编码器
-                            channel.pipeline().addLast(new NeptuneRpcDecoder()); // 4.3 解码器
+                            // 6. 添加处理器
+                            channel.pipeline().addLast(new NeptuneRpcFrameDecoder()); // 6.1 定长解码器 防止黏包和半包问题
+                            channel.pipeline().addLast(new NeptuneRpcEncoder()); // 6.2 编码器
+                            channel.pipeline().addLast(new NeptuneRpcDecoder()); // 6.3 解码器
                             // TODO 考虑之后重构成 Codec
                             channel.pipeline().addLast(new NeptuneRpcServerHandler());
                         }
@@ -102,7 +104,7 @@ public class NeptuneRpcServer {
         } catch (InterruptedException e) {
             log.error("[Neptune RPC Server]: 服务器出现异常", e);
         }finally {
-            // 6. 关闭服务器
+            // 7. 关闭服务器
             close();
         }
     }
@@ -135,9 +137,9 @@ public class NeptuneRpcServer {
             return;
         }
         // 3. 如果符合条件, 那么就将对外提供的接口名字和实现类对象放入缓存中
-        NeptuneRpcServerCache.registryInCache(interfaces[0].getName(), target);
+        NeptuneRpcServerCache.registerService(interfaces[0].getName(), target);
         // 4. 将对外提供的服务 (接口 / 类) 生成对应的 URL 后存储在本地缓存中
-        NeptuneRpcServerCache.registerInCache(getUrl(interfaces));
+        NeptuneRpcServerCache.registerServiceUrl(getUrl(interfaces));
     }
 
     /**
@@ -151,14 +153,10 @@ public class NeptuneRpcServer {
     private final class AsyncRegistryTask implements Runnable{
         @Override
         public void run() {
-            try {
-                if (NeptuneRpcServerCache.urlCacheIsEmpty())
-                    TimeUnit.SECONDS.sleep(ASYNC_REGISTRY_TIME_OUT);
-                for (URL url : NeptuneRpcServerCache.getUrlSet()) {
+            if (NeptuneRpcServerCache.hasServicesUrl()){
+                for (URL url : NeptuneRpcServerCache.getServiceUrls()) {
                     registryService.register(url);
                 }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         }
     }

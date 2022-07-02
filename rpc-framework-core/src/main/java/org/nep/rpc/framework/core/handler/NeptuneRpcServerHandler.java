@@ -13,9 +13,7 @@ import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.nep.rpc.framework.core.common.constant.CommonConstant.PRIMITIVE_TO_WRAPPER;
@@ -41,7 +39,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
                 new String(protocol.getContent()), NeptuneRpcInvocation.class);
         log.debug("invocation: {}", invocation);
         // 3. 从服务端容器中取出缓存的接口
-        Object target = NeptuneRpcServerCache.getFromCache(invocation.getTargetClass());
+        Object target = NeptuneRpcServerCache.getService(invocation.getTargetClass());
         // 4. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
         if (target == null){
             log.error("[Neptune RPC Server]: 客户端调用的接口不存在");

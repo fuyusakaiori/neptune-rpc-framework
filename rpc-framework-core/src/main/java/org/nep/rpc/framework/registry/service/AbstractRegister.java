@@ -16,12 +16,12 @@ public abstract class AbstractRegister implements RegistryService {
 
     @Override
     public void register(URL url) {
-        NeptuneRpcServerCache.registerInCache(url);
+        NeptuneRpcServerCache.registerServiceUrl(url);
     }
 
     @Override
     public void cancel(URL url) {
-        NeptuneRpcServerCache.removeFromCache(url);
+        NeptuneRpcServerCache.cancelServiceUrl(url);
     }
 
     @Override
