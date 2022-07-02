@@ -83,8 +83,14 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      */
     @Override
     public void afterSubscribe(URL url) {
+        String root = Separator.SLASH + url.getServiceName() + PROVIDER;
         log.debug("path: {}", Separator.SLASH + url.getServiceName() + PROVIDER);
-        zookeeperClient.addChildrenNodeWatcher(Separator.SLASH + url.getServiceName() + PROVIDER);
+        // 1. 监听服务提供者路径下所有的子结点
+        zookeeperClient.addChildrenNodeWatcher(root);
+        // 2. 监听每个子结点数据变化, 主要就是监听权重
+        List<String> providers = providers(url.getServiceName());
+        log.debug("providers: {}", providers);
+        providers.forEach(path -> zookeeperClient.addNodeWatcher(root + Separator.SLASH + path));
     }
 
     /**

@@ -17,6 +17,7 @@ import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
+import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 import org.nep.rpc.framework.interfaces.IDataService;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
 import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
@@ -40,6 +41,8 @@ public class NeptuneRpcClient {
     private AbstractRegister registry;
     // 客户端配置类
     private final NeptuneRpcClientConfig config;
+    // 负载均衡策略
+    private INeptuneRpcLoadBalance loadBalance;
     // 客户端
     private Bootstrap client;
 
@@ -62,10 +65,12 @@ public class NeptuneRpcClient {
         }
         // 2. 初始化注册中心
         registry = new NeptuneZookeeperRegister(config.getRegisterConfig());
-        // 3. 初始化循环实践组
+        // 3. 初始化负载均衡策略
+        loadBalance = config.getLoadBalanceStrategy();
+        // 4. 初始化循环实践组
         client = new Bootstrap();
         worker = new NioEventLoopGroup(WORKER_THREAD_COUNT);
-        // 4. 初始化客户端的配置
+        // 5. 初始化客户端的配置
         client.group(worker)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<NioSocketChannel>() {
@@ -79,11 +84,11 @@ public class NeptuneRpcClient {
                 });
         // 注: 测试使用
         subscribeService(IDataService.class);
-        // 5. 初始化客户端和所有服务提供者的连接
+        // 6. 初始化客户端和所有服务提供者的连接
         connectService();
-        // 6. 开启异步线程发送数据
+        // 7. 开启异步线程发送数据
         asyncSend();
-        // 7. 初始化动态代理类
+        // 8. 初始化动态代理类
         this.reference = new NeptuneRpcReference(new JdkDynamicProxyFactory());
     }
 
@@ -111,7 +116,7 @@ public class NeptuneRpcClient {
      */
     private void connectService(){
         // 1. 初始化连接器
-        NeptuneRpcConnectionHandler.init(client);
+        NeptuneRpcConnectionHandler.init(client, loadBalance);
         // 2. 建立连接
         List<URL> serviceUrls = NeptuneRpcClientCache.Services.getServices();
         for (URL url : serviceUrls) {

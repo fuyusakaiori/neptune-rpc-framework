@@ -7,6 +7,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
+import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -19,8 +20,11 @@ public class NeptuneRpcConnectionHandler {
 
     private static Bootstrap client;
 
-    public static void init(Bootstrap client){
+    private static INeptuneRpcLoadBalance loadBalance;
+
+    public static void init(Bootstrap client, INeptuneRpcLoadBalance loadBalance){
         NeptuneRpcConnectionHandler.client = client;
+        NeptuneRpcConnectionHandler.loadBalance = loadBalance;
     }
 
     /**
@@ -98,7 +102,7 @@ public class NeptuneRpcConnectionHandler {
             return null;
         }
         // 3. 采用最简单的策略实现负载均衡: 随机选择
-        return providers.get(RandomUtil.randomInt(providers.size()));
+        return loadBalance.select(providers);
     }
 
 }
