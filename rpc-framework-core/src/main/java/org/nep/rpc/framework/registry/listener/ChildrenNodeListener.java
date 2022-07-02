@@ -18,23 +18,25 @@ public class ChildrenNodeListener implements PathChildrenCacheListener {
     public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
         PathChildrenCacheEvent.Type type = event.getType();
         log.debug("[Neptune RPC Zookeeper]: 处理的事件类型: {}", type);
-        // 1. 获取新增的结点的路径和数据
-        String path = event.getData().getPath();
-        String data = new String(event.getData().getData());
-        log.debug("path: {}, data: {}", path, data);
-        // 2. 客户端和服务器建立连接
-        String[] split = path.split("/");
-        String service = split[1];
-        String ipAndPort = split[3];
-        // 3. 处理事件
-        if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(type)){
-            handleChildAddEvent(service, ipAndPort);
-        }else if (PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(type)){
-            handleChildUpdateEvent(service, ipAndPort, data);
-        }else if (PathChildrenCacheEvent.Type.CHILD_REMOVED.equals(type)){
-            handleChildRemoveEvent(service, ipAndPort);
-        }else{
-            log.info("[Neptune RPC Zookeeper]: 可能发生连接断开、连接重连、建立连接三种类型的事件, 不做任何处理");
+        if (!PathChildrenCacheEvent.Type.INITIALIZED.equals(type)){
+            // 1. 获取新增的结点的路径和数据
+            String path = event.getData().getPath();
+            String data = new String(event.getData().getData());
+            log.debug("path: {}, data: {}", path, data);
+            // 2. 客户端和服务器建立连接
+            String[] split = path.split("/");
+            String service = split[1];
+            String ipAndPort = split[3];
+            // 3. 处理事件
+            if (PathChildrenCacheEvent.Type.CHILD_ADDED.equals(type)){
+                handleChildAddEvent(service, ipAndPort);
+            }else if (PathChildrenCacheEvent.Type.CHILD_UPDATED.equals(type)){
+                handleChildUpdateEvent(service, ipAndPort, data);
+            }else if (PathChildrenCacheEvent.Type.CHILD_REMOVED.equals(type)){
+                handleChildRemoveEvent(service, ipAndPort);
+            }else{
+                log.info("[Neptune RPC Zookeeper]: 可能发生连接断开、连接重连、建立连接三种类型的事件, 不做任何处理");
+            }
         }
     }
 

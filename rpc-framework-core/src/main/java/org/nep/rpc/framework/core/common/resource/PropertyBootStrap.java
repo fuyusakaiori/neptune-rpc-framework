@@ -5,6 +5,7 @@ import org.apache.curator.RetryPolicy;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
+import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -23,6 +24,7 @@ public class PropertyBootStrap {
     private static final String REGISTER_ADDRESS = "neptune.register.address";
     private static final String APPLICATION_NAME = "neptune.application.name";
     private static final String PROXY_TYPE = "neptune.proxy.type";
+    private static final String SERIALIZE_TYPE = "neptune.serialize.type";
     private static final String REGISTER_CONFIG_CONNECT_TIME = "neptune.register.connect.time";
     private static final String REGISTER_CONFIG_SESSION_TIME = "neptune.register.session.time";
     private static final String REGISTER_CONFIG_NAMESPACE = "neptune.register.namespace";
@@ -45,6 +47,8 @@ public class PropertyBootStrap {
             config.setConfig(loadNeptuneRpcRegisterConfiguration());
             // 4. 获取资源文件中配置的服务名
             config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
+            // 5. 获取配置序列化算法
+            config.setSerializer(loadNeptuneRpcSerializer());
             log.debug("config: {}", config);
         } catch (Exception e) {
             throw new RuntimeException("[Neptune RPC Configuration]: 服务器端加载配置文件出现异常", e);
@@ -67,6 +71,7 @@ public class PropertyBootStrap {
         config.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
         config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
         config.setProxy(PropertiesLoader.getString(PROXY_TYPE));
+        config.setSerializer(loadNeptuneRpcSerializer());
         log.debug("config: {}", config);
         return config;
     }
@@ -90,6 +95,19 @@ public class PropertyBootStrap {
             // TODO 动态读取重试策略
         }
         return config;
+    }
+
+    private static INeptuneSerializer loadNeptuneRpcSerializer(){
+        INeptuneSerializer serializer = null;
+        String serializeName = PropertiesLoader.getString(SERIALIZE_TYPE);
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            Class<?> clazz = classLoader.loadClass(serializeName);
+            serializer = (INeptuneSerializer) clazz.getConstructor().newInstance();
+        } catch (Exception e) {
+            log.error("[Neptune RPC Configuration]: 加载序列化算法出现错误");
+        }
+        return serializer;
     }
 
     // TODO 如何实现动态地将重试策略读取到内存中进行配置

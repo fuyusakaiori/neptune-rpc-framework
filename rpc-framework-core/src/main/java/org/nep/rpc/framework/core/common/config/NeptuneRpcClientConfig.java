@@ -1,6 +1,7 @@
 package org.nep.rpc.framework.core.common.config;
 
 import lombok.Data;
+import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 @Data
 public class NeptuneRpcClientConfig {
@@ -14,4 +15,6 @@ public class NeptuneRpcClientConfig {
     private String application;
     // 客户端使用动态代理模式
     private String proxy;
+    // 客户端采用序列化算法
+    private INeptuneSerializer serializer;
 }
