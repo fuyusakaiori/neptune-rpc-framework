@@ -1,9 +1,7 @@
 package org.nep.rpc.framework.core.client;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -26,7 +24,6 @@ import org.nep.rpc.framework.registry.url.DefaultURL;
 import org.nep.rpc.framework.registry.url.URL;
 
 
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -116,16 +113,16 @@ public class NeptuneRpcClient {
         // 1. 初始化连接器
         NeptuneRpcConnectionHandler.init(client);
         // 2. 建立连接
-        List<URL> subscribers = NeptuneRpcClientCache.Subscriber.subscribers();
-        for (URL subscriber : subscribers) {
-            String service = subscriber.getServiceName();
+        List<URL> serviceUrls = NeptuneRpcClientCache.Services.getServices();
+        for (URL url : serviceUrls) {
+            String service = url.getServiceName();
             // 2.1. 客户端分别和每个提供服务的服务器建立连接
             registry.providers(service)
-                    .forEach(provider -> NeptuneRpcConnectionHandler.connect(service, provider));
+                    .forEach(path -> NeptuneRpcConnectionHandler.connect(service, path));
             // 2.2. 监听建立连接的服务器
-            URL url = new DefaultURL();
-            url.setServiceName(service);
-            registry.afterSubscribe(url);
+            URL defaultURL = new DefaultURL();
+            defaultURL.setServiceName(service);
+            registry.afterSubscribe(defaultURL);
         }
     }
 

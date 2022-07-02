@@ -1,7 +1,6 @@
 package org.nep.rpc.framework.core.common.cache;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.client.NeptuneRpcConnectionWrapper;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
@@ -108,41 +107,41 @@ public class NeptuneRpcClientCache {
     }
 
     /**
-     * <h3>客户端存储订阅的服务（接口）</h3>
+     * <h3>客户端存储订阅的服务（接口）的地址</h3>
      */
-    public static class Subscriber{
-        private static final List<URL> subscribers = new ArrayList<>();
+    public static class Services {
+        private static final List<URL> services = new ArrayList<>();
 
         public static void subscribe(URL url){
             if (url == null){
                 log.error("[Neptune RPC Client]: 客户端订阅的服务不存在");
                 return;
             }
-            subscribers.add(url);
+            services.add(url);
         }
 
-        public static boolean cancel(URL url){
+        public static void cancel(URL url){
             if (url == null){
                 log.error("[Neptune RPC Client]: 客户端取消订阅的服务不存在");
-                return false;
+                return;
             }
-            return subscribers.remove(url);
+            services.remove(url);
         }
 
         /**
          * <h3>如果服务提供者的权重之类的属性变了, 那么本地存储的内容就需要变化</h3>
          */
         public static void update(URL url){
-            for (int index = 0; index < subscribers.size(); index++) {
-                if (subscribers.get(index).equals(url)){
-                    subscribers.set(index, url);
+            for (int index = 0; index < services.size(); index++) {
+                if (services.get(index).equals(url)){
+                    services.set(index, url);
                     break;
                 }
             }
         }
 
-        public static List<URL> subscribers(){
-            return subscribers;
+        public static List<URL> getServices(){
+            return services;
         }
 
     }

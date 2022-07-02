@@ -26,12 +26,12 @@ public abstract class AbstractRegister implements RegistryService {
 
     @Override
     public void subscribe(URL url) {
-        NeptuneRpcClientCache.Subscriber.subscribe(url);
+        NeptuneRpcClientCache.Services.subscribe(url);
     }
 
     @Override
     public void unSubscribe(URL url) {
-        NeptuneRpcClientCache.Subscriber.cancel(url);
+        NeptuneRpcClientCache.Services.cancel(url);
     }
 
     public abstract void beforeSubscribe(URL url);
