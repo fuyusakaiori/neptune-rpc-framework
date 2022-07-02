@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.core;
+package org.nep.rpc.framework;
 
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.server.NeptuneRpcServer;

@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.core;
+package org.nep.rpc.framework;
 
 import org.nep.rpc.framework.core.client.NeptuneRpcClient;
 import org.nep.rpc.framework.core.client.NeptuneRpcReference;
