@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.nep.rpc.framework.core.common.constant.Separator;
 
 import java.util.Map;
 import java.util.Objects;
@@ -15,8 +16,6 @@ import java.util.Objects;
 @Data
 @ToString
 public class DefaultURL implements URL {
-
-    public static final String SEMICOLON = ";";
 
     /**
      * <h3>对外提供的接口或者类名称</h3>
@@ -36,20 +35,17 @@ public class DefaultURL implements URL {
      */
     private int port;
 
-    /**
-     * <h3>服务其它参数: </h3>
-     * <h3>1. 服务权重</h3>
-     */
-    private Map<String, Object> parameters;
+    private int weight;
 
     /**
      * <h3>服务提供者 URL 转为字符串 => 作为数据存储在结点中</h3>
      */
     public String toProviderString(){
-        return applicationName + SEMICOLON
-                       + serviceName + SEMICOLON
-                       + address + SEMICOLON
-                       + port + SEMICOLON
+        return applicationName + Separator.SEMICOLON
+                       + serviceName + Separator.SEMICOLON
+                       + address + Separator.SEMICOLON
+                       + port + Separator.SEMICOLON
+                       + weight + Separator.SEMICOLON
                        + System.currentTimeMillis();
     }
 
@@ -57,14 +53,10 @@ public class DefaultURL implements URL {
      * <h3>服务消费者 URL 转为字符串 => 作为数据存储在结点中</h3>
      */
     public String toConsumerString(){
-        return applicationName + SEMICOLON
-                + serviceName + SEMICOLON
-                + port + SEMICOLON
+        return applicationName + Separator.SEMICOLON
+                + serviceName + Separator.SEMICOLON
+                + port + Separator.SEMICOLON
                 + System.currentTimeMillis();
-    }
-
-    public void addParameter(String key, Object value){
-        parameters.putIfAbsent(key, value);
     }
 
     @Override

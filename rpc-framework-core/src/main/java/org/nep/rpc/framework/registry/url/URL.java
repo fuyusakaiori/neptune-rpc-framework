@@ -14,8 +14,7 @@ public interface URL {
     String getAddress();
 
     int getPort();
-
-    Map<String, Object> getParameters();
+    int getWeight();
 
     void setApplicationName(String applicationName);
 
@@ -24,6 +23,8 @@ public interface URL {
     void setAddress(String address);
 
     void setPort(int port);
+
+    void setWeight(int weight);
 
     String toProviderString();
 

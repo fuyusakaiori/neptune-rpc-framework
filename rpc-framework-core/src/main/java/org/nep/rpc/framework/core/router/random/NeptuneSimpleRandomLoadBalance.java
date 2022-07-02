@@ -1,0 +1,20 @@
+package org.nep.rpc.framework.core.router.random;
+
+import cn.hutool.core.util.RandomUtil;
+import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
+import org.nep.rpc.framework.core.router.AbstractNeptuneRpcLoadBalance;
+
+import java.util.List;
+import java.util.Random;
+
+/**
+ * <h3>简单随机算法</h3>
+ */
+public class NeptuneSimpleRandomLoadBalance extends AbstractNeptuneRpcLoadBalance {
+
+    private final Random random = new Random();
+    @Override
+    public NeptuneRpcInvoker doSelect(List<NeptuneRpcInvoker> invokers) {
+        return invokers.get(random.nextInt(invokers.size()));
+    }
+}

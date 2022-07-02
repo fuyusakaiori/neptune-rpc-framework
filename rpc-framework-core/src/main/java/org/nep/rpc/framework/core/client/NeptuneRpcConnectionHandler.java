@@ -46,7 +46,7 @@ public class NeptuneRpcConnectionHandler {
         // 3. 准备建立连接
         try {
             ChannelFuture future = client.connect(new InetSocketAddress(address, port)).sync();
-            NeptuneRpcConnectionWrapper wrapper = new NeptuneRpcConnectionWrapper();
+            NeptuneRpcInvoker wrapper = new NeptuneRpcInvoker();
             wrapper.setPort(port);
             wrapper.setAddress(address);
             wrapper.setFuture(future);
@@ -66,7 +66,7 @@ public class NeptuneRpcConnectionHandler {
             log.debug("[Neptune RPC Client]: 服务名和结点的路径为空");
             return;
         }
-        NeptuneRpcConnectionWrapper wrapper =
+        NeptuneRpcInvoker wrapper =
                 NeptuneRpcClientCache.Connection.disconnect(serviceName, path);
         if (wrapper == null){
             log.error("[Neptune RPC Client]: 需要关闭的连接不存在");
@@ -85,14 +85,14 @@ public class NeptuneRpcConnectionHandler {
     /**
      * <h3>负责获取连接的包装类</h3>
      */
-    public static NeptuneRpcConnectionWrapper channelWrapper(String service){
+    public static NeptuneRpcInvoker channelWrapper(String service){
         // 1. 参数校验
         if (StrUtil.isEmpty(service)){
             log.error("[Neptune RPC Client]: 传入的服务名为空, 无法查找对应的服务");
             return null;
         }
         // 2. 获取服务提供者
-        List<NeptuneRpcConnectionWrapper> providers = NeptuneRpcClientCache.Connection.providers(service);
+        List<NeptuneRpcInvoker> providers = NeptuneRpcClientCache.Connection.providers(service);
         if (CollectionUtil.isEmpty(providers)){
             log.warn("[Neptune RPC Client]: 当前服务并没有任何服务器正在提供服务");
             return null;

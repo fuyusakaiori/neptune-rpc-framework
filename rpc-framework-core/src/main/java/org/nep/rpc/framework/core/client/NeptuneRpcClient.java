@@ -163,7 +163,7 @@ public class NeptuneRpcClient {
                 NeptuneRpcProtocol message =
                         new NeptuneRpcProtocol(JSON.toJSONString(invocation).getBytes(StandardCharsets.UTF_8));
                 // 3. 获取服务提供者
-                NeptuneRpcConnectionWrapper wrapper =
+                NeptuneRpcInvoker wrapper =
                         NeptuneRpcConnectionHandler.channelWrapper(invocation.getTargetClass());
                 if (wrapper != null){
                     log.debug("[Neptune RPC Client]: 客户端向服务端发送消息 [IP地址: {}, 端口号: {}]",

@@ -2,7 +2,7 @@ package org.nep.rpc.framework.core.common.cache;
 
 import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.client.NeptuneRpcConnectionWrapper;
+import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.registry.url.URL;
 
@@ -151,11 +151,11 @@ public class NeptuneRpcClientCache {
      */
     public static class Connection{
         // 注: 每个服务都会有多个应用提供, 这里的集合就是客户端和提供服务的应用建立的所有连接
-        private static final Map<String, List<NeptuneRpcConnectionWrapper>> CONNECTION
+        private static final Map<String, List<NeptuneRpcInvoker>> CONNECTION
                 = new ConcurrentHashMap<>();
-        public static void connect(String service, NeptuneRpcConnectionWrapper wrapper){
+        public static void connect(String service, NeptuneRpcInvoker wrapper){
             // 1. 查询该服务是否已经有连接集合, 如果没有创建一个
-            List<NeptuneRpcConnectionWrapper> connections
+            List<NeptuneRpcInvoker> connections
                     = CONNECTION.getOrDefault(service, new ArrayList<>());
             // 2. 添加新的连接
             connections.add(wrapper);
@@ -163,11 +163,11 @@ public class NeptuneRpcClientCache {
             CONNECTION.put(service, connections);
         }
 
-        public static NeptuneRpcConnectionWrapper disconnect(String service, String path){
-            List<NeptuneRpcConnectionWrapper> connections = CONNECTION.get(service);
+        public static NeptuneRpcInvoker disconnect(String service, String path){
+            List<NeptuneRpcInvoker> connections = CONNECTION.get(service);
             if (CollectionUtil.isNotEmpty(connections)){
                 for (int index = 0; index < connections.size(); index++) {
-                    NeptuneRpcConnectionWrapper wrapper = connections.get(index);
+                    NeptuneRpcInvoker wrapper = connections.get(index);
                     if (path.equals(wrapper.getAddress() + ":" + wrapper.getPort())){
                         return connections.remove(index);
                     }
@@ -176,7 +176,7 @@ public class NeptuneRpcClientCache {
             return null;
         }
 
-        public static List<NeptuneRpcConnectionWrapper> providers(String service){
+        public static List<NeptuneRpcInvoker> providers(String service){
             return CONNECTION.getOrDefault(service, new ArrayList<>());
         }
     }

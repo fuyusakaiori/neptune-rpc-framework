@@ -9,8 +9,11 @@ import lombok.ToString;
  */
 @Data
 @ToString
-public class NeptuneRpcConnectionWrapper {
+public class NeptuneRpcInvoker
+{
     private int port;
+    private int fixedWeight;
+    private int dynamicWeight;
     private String address;
     private ChannelFuture future;
 }
