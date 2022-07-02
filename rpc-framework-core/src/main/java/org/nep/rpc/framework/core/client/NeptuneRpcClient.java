@@ -17,6 +17,7 @@ import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
+import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.interfaces.IDataService;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
 import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
@@ -38,6 +39,8 @@ public class NeptuneRpcClient {
     private NeptuneRpcReference reference;
     // 注册中心
     private AbstractRegister registry;
+    // 序列化算法
+    private INeptuneSerializer serializer;
     // 客户端配置类
     private final NeptuneRpcClientConfig config;
     // 客户端
@@ -62,6 +65,7 @@ public class NeptuneRpcClient {
         }
         // 2. 初始化注册中心
         registry = new NeptuneZookeeperRegister(config.getRegisterConfig());
+        serializer = config.getSerializer();
         // 3. 初始化循环实践组
         client = new Bootstrap();
         worker = new NioEventLoopGroup(WORKER_THREAD_COUNT);
@@ -151,7 +155,7 @@ public class NeptuneRpcClient {
         return this.reference;
     }
 
-    private static final class AsyncSendTask implements Runnable{
+    private final class AsyncSendTask implements Runnable{
         @Override
         public void run() {
             // TODO 如果客户端突然宕机, 消息发到一半怎么处理
@@ -161,7 +165,7 @@ public class NeptuneRpcClient {
                 log.debug("[Neptune RPC Client]: 异步线程获取到消息 {}", invocation);
                 // 2. 序列化: 暂时采用 json
                 NeptuneRpcProtocol message =
-                        new NeptuneRpcProtocol(JSON.toJSONString(invocation).getBytes(StandardCharsets.UTF_8));
+                        new NeptuneRpcProtocol(serializer.serialize(invocation));
                 // 3. 获取服务提供者
                 NeptuneRpcConnectionWrapper wrapper =
                         NeptuneRpcConnectionHandler.channelWrapper(invocation.getTargetClass());

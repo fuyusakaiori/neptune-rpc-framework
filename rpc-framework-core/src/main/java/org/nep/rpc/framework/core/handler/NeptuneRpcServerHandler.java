@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
+import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
+import org.nep.rpc.framework.core.serialize.SerializerFactory;
 
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -34,24 +36,25 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         // 1. 从解码器中获取到的消息转换成协议的形式
         NeptuneRpcProtocol protocol =  (NeptuneRpcProtocol) message;
         log.debug("message: {}", protocol);
-        // 2. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
-        NeptuneRpcInvocation invocation = JSON.parseObject(
-                new String(protocol.getContent()), NeptuneRpcInvocation.class);
+        // 2. TODO 后序需要改进 获取序列化算法
+        INeptuneSerializer serializer = SerializerFactory.getSerializer(protocol.getSerializer());
+        // 3. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
+        NeptuneRpcInvocation invocation = (NeptuneRpcInvocation) serializer.deserialize(protocol.getContent());
         log.debug("invocation: {}", invocation);
-        // 3. 从服务端容器中取出缓存的接口
+        // 4. 从服务端容器中取出缓存的接口
         Object target = NeptuneRpcServerCache.getService(invocation.getTargetClass());
-        // 4. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
+        // 5. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
         if (target == null){
             log.error("[Neptune RPC Server]: 客户端调用的接口不存在");
             invocation.setResponse("客户端调用的接口不存在");
-            protocol.setContent(JSON.toJSONString(invocation).getBytes(StandardCharsets.UTF_8));
+            protocol.setContent(serializer.serialize(invocation));
             ctx.writeAndFlush(protocol);
             return;
         }
-        // 5. 获取目标类中的所有方法
+        // 6. 获取目标类中的所有方法
         Method[] methods = target.getClass().getDeclaredMethods();
         log.debug("methods: {}", methods.length);
-        // 5. 开始匹配方法然后调用
+        // 7. 开始匹配方法然后调用
         Object result = null;
         for (Method method : methods) {
             // 注: 如果只比较方法名, 那么很有可能出现方法重载的情况, 最后导致方法调错
@@ -60,10 +63,10 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
                 break;
             }
         }
-        // 6. 序列化结果写回给客户端; 暂时采用 json
+        // 8. 序列化结果写回给客户端; 暂时采用 json
         invocation.setResponse(result);
         ctx.writeAndFlush(new NeptuneRpcProtocol(protocol.getProtocolVersion(), protocol.getSerializer(),
-                JSON.toJSONString(invocation).getBytes(StandardCharsets.UTF_8)));
+                serializer.serialize(invocation)));
     }
 
     /**
