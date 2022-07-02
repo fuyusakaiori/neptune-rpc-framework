@@ -194,7 +194,7 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
     @Override
     public void addChildrenNodeWatcher(String path) {
         // 1. 构建监听根结点
-        CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build();
+        CuratorCache curatorCache = CuratorCache.build(zookeeperClient, path);
         // 2. 构建监听器
         CuratorCacheListener listener =
                 CuratorCacheListener.builder()

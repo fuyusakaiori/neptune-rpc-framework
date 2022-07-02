@@ -18,7 +18,7 @@ public class NeptuneRpcClientHandler extends ChannelInboundHandlerAdapter {
         NeptuneRpcProtocol protocol = (NeptuneRpcProtocol) message;
         log.debug("protocol: {}", protocol);
         INeptuneSerializer serializer = SerializerFactory.getSerializer(protocol.getSerializer());
-        NeptuneRpcInvocation invocation = (NeptuneRpcInvocation) serializer.deserialize(protocol.getContent());
+        NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
         log.debug("invocation: {}", invocation);
         if (NeptuneRpcClientCache.Windows.match(invocation.getUuid()))
             NeptuneRpcClientCache.Windows.put(invocation.getUuid(), invocation);

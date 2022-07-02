@@ -1,7 +1,6 @@
 package org.nep.rpc.framework.core.serialize;
 
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.common.constant.SerializerType;
 import org.nep.rpc.framework.core.serialize.hessian.HessianSerializer;
 import org.nep.rpc.framework.core.serialize.jdk.JdkSerializer;
 import org.nep.rpc.framework.core.serialize.json.FastJsonSerializer;

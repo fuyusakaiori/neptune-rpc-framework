@@ -3,6 +3,7 @@ package org.nep.rpc.framework.core.common.cache;
 import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
+import org.nep.rpc.framework.core.common.constant.Separator;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.registry.url.URL;
 
@@ -178,6 +179,20 @@ public class NeptuneRpcClientCache {
 
         public static List<NeptuneRpcInvoker> providers(String service){
             return CONNECTION.getOrDefault(service, new ArrayList<>());
+        }
+
+        public static boolean isConnect(String service, String path){
+            // 1. 获取所有的服务对应的连接
+            List<NeptuneRpcInvoker> connections = CONNECTION.getOrDefault(service, new ArrayList<>());
+            // 2. 如果连接为空, 那么证明这个服务的提供者都还没有建立连接
+            if (CollectionUtil.isEmpty(connections))
+                return false;
+            // 3. 如果不为空, 那么就需要判断这个连接是否重复
+            for (NeptuneRpcInvoker connection : connections) {
+                if (path.equals(connection.getAddress() + Separator.COLON + connection.getPort()))
+                    return true;
+            }
+            return false;
         }
     }
 }

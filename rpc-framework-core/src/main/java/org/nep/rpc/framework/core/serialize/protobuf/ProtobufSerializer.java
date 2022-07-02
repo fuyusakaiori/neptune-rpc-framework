@@ -11,13 +11,13 @@ import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 public class ProtobufSerializer implements INeptuneSerializer
 {
     @Override
-    public byte[] serialize(Object source)
+    public <T> byte[] serialize(T source)
     {
         return new byte[0];
     }
 
     @Override
-    public Object deserialize(byte[] source)
+    public <T> T deserialize(byte[] source, Class<T> clazz)
     {
         return null;
     }

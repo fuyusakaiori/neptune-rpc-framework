@@ -4,8 +4,8 @@ public interface INeptuneSerializer
 {
 
 
-    byte[] serialize(Object source);
+    <T> byte[] serialize(T source);
 
-    Object deserialize(byte[] source);
+    <T> T deserialize(byte[] source, Class<T> clazz);
 
 }

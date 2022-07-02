@@ -7,10 +7,14 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
+import org.nep.rpc.framework.core.common.constant.Separator;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * <h3>负责处理连接相关</h3>
@@ -31,30 +35,36 @@ public class NeptuneRpcConnectionHandler {
      * <h3>负责建立连接</h3>
      */
     public static void connect(String serviceName, String path){
-        // 1. 参数校验
+        // 1. 客户端是否启动
         if (client == null)
             throw new RuntimeException("[Neptune RPC Client]: 客户端未启动");
+        // 2. 服务名和结点路径是否为空
         if (StrUtil.isEmpty(serviceName) || StrUtil.isEmpty(path)){
             log.error("[Neptune RPC Client]: 传入的服务名和结点路径格式为空");
             return;
         }
-        log.debug("service: {}, path: {}", serviceName, path);
-        // 2. 获取启动必要的端口号和 IP 地址
-        String[] ipAndPort = path.split(":");
-        if ( ipAndPort.length != 2){
+        // 3. 检验结点名格式是否存在问题
+        if (!path.contains(Separator.COLON)){
             log.error("[Neptune RPC Client]: 传入的结点路径格式存在问题");
             return;
         }
+        // 4. 检验连接是否已经存在: 这个主要的目的是解决监听器缓存和注册中心不一致引发的事件, 会导致重复连接
+        if (NeptuneRpcClientCache.Connection.isConnect(serviceName, path)){
+            log.debug("[Neptune RPC Client]: 发生重复连接");
+            return;
+        }
+        // 5. 获取启动必要的端口号和 IP 地址
+        String[] ipAndPort = path.split(":");
         int port = Integer.parseInt(ipAndPort[1]);
         String address = ipAndPort[0];
-        // 3. 准备建立连接
+        // 6. 准备建立连接
         try {
             ChannelFuture future = client.connect(new InetSocketAddress(address, port)).sync();
             NeptuneRpcInvoker wrapper = new NeptuneRpcInvoker();
             wrapper.setPort(port);
             wrapper.setAddress(address);
             wrapper.setFuture(future);
-            // 4. 记录当前建立的连接
+            // 7. 记录当前建立的连接
             NeptuneRpcClientCache.Connection.connect(serviceName, wrapper);
             log.debug("[Neptune RPC Client]: 服务端连接建立成功");
         } catch (InterruptedException e) {
@@ -102,7 +112,9 @@ public class NeptuneRpcConnectionHandler {
             return null;
         }
         // 3. 采用最简单的策略实现负载均衡: 随机选择
-        return loadBalance.select(providers);
+        NeptuneRpcInvoker invoker = loadBalance.select(providers);
+        log.debug("[Neptune RPC Client]: 选择的服务器: [IP: {}, Port: {}]", invoker.getAddress(), invoker.getPort());
+        return invoker;
     }
 
 }

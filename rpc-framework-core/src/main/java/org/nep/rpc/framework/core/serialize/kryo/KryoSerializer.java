@@ -15,6 +15,7 @@ import static org.nep.rpc.framework.core.common.util.StreamUtil.close;
  * <h3>Kryo 序列化</h3>
  */
 @Slf4j
+@SuppressWarnings("unchecked")
 public class KryoSerializer implements INeptuneSerializer
 {
 
@@ -27,7 +28,7 @@ public class KryoSerializer implements INeptuneSerializer
     }
 
     @Override
-    public byte[] serialize(Object source) {
+    public <T> byte[] serialize(T source) {
         byte[] target = null;
         Output output = null;
         try {
@@ -43,7 +44,7 @@ public class KryoSerializer implements INeptuneSerializer
     }
 
     @Override
-    public Object deserialize(byte[] source) {
+    public <T> T deserialize(byte[] source, Class<T> clazz) {
         Object target = null;
         Input input = null;
         try {
@@ -54,6 +55,6 @@ public class KryoSerializer implements INeptuneSerializer
         } finally {
             close(input);
         }
-        return target;
+        return (T) target;
     }
 }

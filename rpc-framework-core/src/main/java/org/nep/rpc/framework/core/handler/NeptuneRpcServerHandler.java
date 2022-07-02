@@ -1,7 +1,6 @@
 package org.nep.rpc.framework.core.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.fastjson.JSON;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -39,7 +38,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         // 2. TODO 后序需要改进 获取序列化算法
         INeptuneSerializer serializer = SerializerFactory.getSerializer(protocol.getSerializer());
         // 3. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
-        NeptuneRpcInvocation invocation = (NeptuneRpcInvocation) serializer.deserialize(protocol.getContent());
+        NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
         log.debug("invocation: {}", invocation);
         // 4. 从服务端容器中取出缓存的接口
         Object target = NeptuneRpcServerCache.getService(invocation.getTargetClass());

@@ -11,11 +11,12 @@ import static org.nep.rpc.framework.core.common.util.StreamUtil.close;
  * <h3>JDK 序列化</h3>
  */
 @Slf4j
+@SuppressWarnings("unchecked")
 public class JdkSerializer implements INeptuneSerializer
 {
 
     @Override
-    public byte[] serialize(Object source) {
+    public <T> byte[] serialize(T source) {
         byte[] target = null;
         ByteArrayOutputStream baos = null;
         ObjectOutputStream oos = null;
@@ -38,7 +39,7 @@ public class JdkSerializer implements INeptuneSerializer
     }
 
     @Override
-    public Object deserialize(byte[] source) {
+    public <T> T deserialize(byte[] source, Class<T> clazz) {
         Object target = null;
         ObjectInputStream ois = null;
         try {
@@ -52,6 +53,6 @@ public class JdkSerializer implements INeptuneSerializer
         } finally {
             close(ois);
         }
-        return target;
+        return (T) target;
     }
 }

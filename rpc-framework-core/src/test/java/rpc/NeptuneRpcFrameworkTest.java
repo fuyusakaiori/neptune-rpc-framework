@@ -11,9 +11,12 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.junit.jupiter.api.Test;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
+import org.nep.rpc.framework.core.common.constant.SerializerType;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxy;
+import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
+import org.nep.rpc.framework.core.serialize.SerializerFactory;
 import org.nep.rpc.framework.registry.service.zookeeper.client.NeptuneZookeeperClient;
 
 import java.io.IOException;
@@ -159,6 +162,16 @@ public class NeptuneRpcFrameworkTest
         NeptuneZookeeperClient client = new NeptuneZookeeperClient(config.getRegisterConfig());
         client.addChildrenNodeWatcher("/org.nep.rpc.framework.interfaces.IDataService/provider");
         System.in.read();
+    }
+
+    @Test
+    public void serializeTest(){
+        NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
+        invocation.setArgs(new Object[]{114514});
+        invocation.setUuid(RandomUtil.randomString(6));
+        invocation.setTargetClass("IDataService.class");
+        invocation.setTargetMethod("send");
+        INeptuneSerializer serializer = SerializerFactory.getSerializer(SerializerType.SERIALIZER_JSON.getCode());
     }
 
 

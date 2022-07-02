@@ -15,10 +15,11 @@ import static org.nep.rpc.framework.core.common.util.StreamUtil.close;
  * <h3>Hessian 序列化</h3>
  */
 @Slf4j
+@SuppressWarnings("unchecked")
 public class HessianSerializer implements INeptuneSerializer
 {
     @Override
-    public byte[] serialize(Object source) {
+    public <T> byte[] serialize(T source) {
         byte[] target = null;
         ByteArrayOutputStream output = null;
         Hessian2Output hessian = null;
@@ -42,7 +43,7 @@ public class HessianSerializer implements INeptuneSerializer
     }
 
     @Override
-    public Object deserialize(byte[] source) {
+    public <T> T deserialize(byte[] source, Class<T> clazz) {
         Object target = null;
         Hessian2Input hession = null;
         try {
@@ -60,6 +61,6 @@ public class HessianSerializer implements INeptuneSerializer
             }
         }
 
-        return target;
+        return (T) target;
     }
 }

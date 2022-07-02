@@ -68,6 +68,7 @@ public class PropertyBootStrap {
             throw new RuntimeException("[Neptune RPC Configuration]: 客户端加载配置文件出现异常", e);
         }
         NeptuneRpcClientConfig config = new NeptuneRpcClientConfig();
+        // TODO 进程的端口号无法获取
         config.setPort(PropertiesLoader.getInt(SERVER_PORT));
         config.setAddress(ADDRESS);
         config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));

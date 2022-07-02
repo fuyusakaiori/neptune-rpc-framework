@@ -10,15 +10,17 @@ import java.nio.charset.StandardCharsets;
  * <h3>FastJson 序列化</h3>
  */
 @Slf4j
-public class FastJsonSerializer implements INeptuneSerializer
-{
+public class FastJsonSerializer implements INeptuneSerializer {
     @Override
-    public byte[] serialize(Object source) {
+    public <T> byte[] serialize(T source) {
+        log.debug("source: {}", source);
         return JSON.toJSONString(source).getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public Object deserialize(byte[] source) {
-        return JSON.parseObject(new String(source));
+    public <T> T deserialize(byte[] source, Class<T> clazz) {
+        String message = new String(source, StandardCharsets.UTF_8);
+        log.debug("message: {}", message);
+        return JSON.parseObject(message, clazz);
     }
 }
