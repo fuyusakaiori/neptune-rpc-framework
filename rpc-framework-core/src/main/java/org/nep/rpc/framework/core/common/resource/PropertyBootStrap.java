@@ -6,6 +6,7 @@ import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
+import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -23,12 +24,13 @@ public class PropertyBootStrap {
     private static final String SERVER_PORT = "neptune.server.port";
     private static final String REGISTER_ADDRESS = "neptune.register.address";
     private static final String APPLICATION_NAME = "neptune.application.name";
-    private static final String PROXY_TYPE = "neptune.proxy.type";
+    private static final String PROXY_TYPE = "neptune.client.proxy.type";
     private static final String SERIALIZE_TYPE = "neptune.serialize.type";
     private static final String REGISTER_CONFIG_CONNECT_TIME = "neptune.register.connect.time";
     private static final String REGISTER_CONFIG_SESSION_TIME = "neptune.register.session.time";
     private static final String REGISTER_CONFIG_NAMESPACE = "neptune.register.namespace";
     private static final String REGISTER_CONFIG_RETRY_POLICY = "neptune.register.retry.policy";
+    private static final String CLIENT_BALANCE_POLICY = "neptune.client.balance.policy";
     public static final String ADDRESS = "127.0.0.1";
 
 
@@ -66,12 +68,13 @@ public class PropertyBootStrap {
             throw new RuntimeException("[Neptune RPC Configuration]: 客户端加载配置文件出现异常", e);
         }
         NeptuneRpcClientConfig config = new NeptuneRpcClientConfig();
-        config.setAddress(ADDRESS);
         config.setPort(PropertiesLoader.getInt(SERVER_PORT));
-        config.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
+        config.setAddress(ADDRESS);
         config.setApplication(PropertiesLoader.getString(APPLICATION_NAME));
         config.setProxy(PropertiesLoader.getString(PROXY_TYPE));
         config.setSerializer(loadNeptuneRpcSerializer());
+        config.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
+        config.setLoadBalanceStrategy(loadNeptuneRpcLoadBalance());
         log.debug("config: {}", config);
         return config;
     }
@@ -97,17 +100,38 @@ public class PropertyBootStrap {
         return config;
     }
 
-    private static INeptuneSerializer loadNeptuneRpcSerializer(){
+    private static INeptuneSerializer loadNeptuneRpcSerializer() {
         INeptuneSerializer serializer = null;
         String serializeName = PropertiesLoader.getString(SERIALIZE_TYPE);
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        try {
+        try
+        {
             Class<?> clazz = classLoader.loadClass(serializeName);
             serializer = (INeptuneSerializer) clazz.getConstructor().newInstance();
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             log.error("[Neptune RPC Configuration]: 加载序列化算法出现错误");
         }
         return serializer;
+    }
+    private static INeptuneRpcLoadBalance loadNeptuneRpcLoadBalance(){
+        INeptuneRpcLoadBalance strategy = null;
+        // 1. 获取配置的负载均衡策略的全限定名
+        String strategyName = PropertiesLoader.getString(CLIENT_BALANCE_POLICY);
+        // 2. 获取类加载器
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            // 3. 加载负载均衡策略的对象
+            Class<?> clazz = classLoader.loadClass(strategyName);
+            // 4. 获取策略的空参构造器
+            Constructor<?> constructor = clazz.getConstructor();
+            // 5. 构建实例
+            strategy =  (INeptuneRpcLoadBalance) constructor.newInstance();
+        } catch (Exception e) {
+            log.error("[Neptune RPC Configuration]: 客户端加载负载均衡策略出现异常");
+        }
+        return strategy;
     }
 
     // TODO 如何实现动态地将重试策略读取到内存中进行配置

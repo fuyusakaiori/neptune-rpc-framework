@@ -3,6 +3,7 @@ package org.nep.rpc.framework.registry.service.zookeeper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
+import org.nep.rpc.framework.core.common.constant.Separator;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
 import org.nep.rpc.framework.registry.service.RegistryService;
 import org.nep.rpc.framework.registry.service.zookeeper.client.AbstractZookeeperClient;
@@ -21,9 +22,6 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     private static final String CONSUMER = "/consumer";
     // 提供者
     private static final String PROVIDER = "/provider";
-    // 分隔符
-    private static final String SLASH = "/";
-    private static final String COLON = ":";
 
     public NeptuneZookeeperRegister(NeptuneRpcRegisterConfig config) {
         this.zookeeperClient = new NeptuneZookeeperClient(config);
@@ -85,8 +83,14 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      */
     @Override
     public void afterSubscribe(URL url) {
-        log.debug("path: {}", SLASH + url.getServiceName() + PROVIDER);
-        zookeeperClient.addChildrenNodeWatcher(SLASH + url.getServiceName() + PROVIDER);
+        String root = Separator.SLASH + url.getServiceName() + PROVIDER;
+        log.debug("path: {}", Separator.SLASH + url.getServiceName() + PROVIDER);
+        // 1. 监听服务提供者路径下所有的子结点
+        zookeeperClient.addChildrenNodeWatcher(root);
+        // 2. 监听每个子结点数据变化, 主要就是监听权重
+        List<String> providers = providers(url.getServiceName());
+        log.debug("providers: {}", providers);
+        providers.forEach(path -> zookeeperClient.addNodeWatcher(root + Separator.SLASH + path));
     }
 
     /**
@@ -98,7 +102,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
             log.error("[Neptune RPC Zookeeper]: 服务名不可以为空");
             return null;
         }
-        String path = SLASH + serviceName + PROVIDER;
+        String path = Separator.SLASH + serviceName + PROVIDER;
         log.debug("path: {}", path);
         return zookeeperClient.getChildrenNode(path);
     }
@@ -113,8 +117,8 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      */
     private String toProviderPath(URL url){
         log.debug("url: {}", url);
-        return SLASH + url.getServiceName() + PROVIDER + SLASH
-                       + url.getAddress() + COLON + url.getPort();
+        return Separator.SLASH + url.getServiceName() + PROVIDER + Separator.SLASH
+                       + url.getAddress() + Separator.COLON + url.getPort();
     }
 
     /**
@@ -122,7 +126,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      */
     private String toConsumerPath(URL url){
         log.debug("url: {}", url);
-        return SLASH + url.getServiceName() + CONSUMER + SLASH
-                + url.getApplicationName() + COLON + url.getAddress() + COLON + url.getPort();
+        return Separator.SLASH + url.getServiceName() + CONSUMER + Separator.SLASH
+                + url.getApplicationName() + Separator.COLON + url.getAddress() + Separator.COLON + url.getPort();
     }
 }

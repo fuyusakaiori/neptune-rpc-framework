@@ -14,6 +14,4 @@ public class CommonConstant {
     public static final int CALL_TIME_OUT = 10;
     // 基本数据类型转包装类
     public static final Map<String, String> PRIMITIVE_TO_WRAPPER = new HashMap<>();
-    // 异步加载等待时间
-    public static final int ASYNC_REGISTRY_TIME_OUT = 5;
 }

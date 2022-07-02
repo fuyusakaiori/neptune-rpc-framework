@@ -12,7 +12,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.registry.listener.ChildrenNodeListener;
-import org.nep.rpc.framework.registry.listener.NodeListener;
+import org.nep.rpc.framework.registry.listener.NodeChangeListener;
 import org.nep.rpc.framework.registry.listener.TreeNodeListener;
 
 import java.nio.charset.StandardCharsets;
@@ -184,7 +184,7 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
         CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build();
         // 2. 创建监听器
         CuratorCacheListener listener = CuratorCacheListener.builder()
-                                                .forNodeCache(new NodeListener()).build();
+                                                .forChanges(new NodeChangeListener()).build();
         // 3. 添加监听器
         curatorCache.listenable().addListener(listener);
         // 4. 启动监听器
