@@ -11,6 +11,14 @@ public class TreeNodeListener implements TreeCacheListener {
     @Override
     public void childEvent(CuratorFramework client, TreeCacheEvent event) throws Exception
     {
+        if (TreeCacheEvent.Type.NODE_ADDED.equals(event.getType())){
 
+        }else if (TreeCacheEvent.Type.NODE_UPDATED.equals(event.getType())){
+
+        }else if (TreeCacheEvent.Type.NODE_REMOVED.equals(event.getType())){
+
+        }else{
+
+        }
     }
 }

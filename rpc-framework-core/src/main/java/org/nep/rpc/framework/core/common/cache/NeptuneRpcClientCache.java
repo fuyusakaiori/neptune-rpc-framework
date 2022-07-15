@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
 import org.nep.rpc.framework.core.common.constant.Separator;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.registry.url.URL;
 
 import java.util.ArrayList;

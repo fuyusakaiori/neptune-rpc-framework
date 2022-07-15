@@ -16,14 +16,11 @@ public class JdkSerializer implements INeptuneSerializer
 {
 
     @Override
-    public <T> byte[] serialize(T source) {
+    public byte[] serialize(Object source) {
         byte[] target = null;
-        ByteArrayOutputStream baos = null;
-        ObjectOutputStream oos = null;
-        try {
-            // 1. 初始化流对象
-            baos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(baos);
+        // 1. 初始化流对象
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)){
             // 2. 序列化
             oos.writeObject(source);
             oos.flush();
@@ -31,9 +28,6 @@ public class JdkSerializer implements INeptuneSerializer
             target = baos.toByteArray();
         } catch (IOException e) {
             log.error("[Neptune RPC Serialize]: JDK 序列化出现异常", e);
-        }finally {
-            close(baos);
-            close(oos);
         }
         return target;
     }
@@ -41,17 +35,13 @@ public class JdkSerializer implements INeptuneSerializer
     @Override
     public <T> T deserialize(byte[] source, Class<T> clazz) {
         Object target = null;
-        ObjectInputStream ois = null;
-        try {
-            // 1. 初始化流对象
-            ois = new ObjectInputStream(
-                    new ByteArrayInputStream(source));
+        // 1. 初始化流对象
+        try (ObjectInputStream ois = new ObjectInputStream(
+                new ByteArrayInputStream(source))){
             // 2. 反序列化对象
             target = ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
             log.error("[Neptune RPC Serialize]: JDK 反序列化出现异常", e);
-        } finally {
-            close(ois);
         }
         return (T) target;
     }

@@ -12,9 +12,9 @@ import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcClientHandler;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
@@ -25,7 +25,6 @@ import org.nep.rpc.framework.registry.url.DefaultURL;
 import org.nep.rpc.framework.registry.url.URL;
 
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -173,7 +172,7 @@ public class NeptuneRpcClient {
                         new NeptuneRpcProtocol(serializer.serialize(invocation));
                 // 3. 获取服务提供者
                 NeptuneRpcInvoker wrapper =
-                        NeptuneRpcConnectionHandler.channelWrapper(invocation.getTargetClass());
+                        NeptuneRpcConnectionHandler.channelWrapper(invocation.getService());
                 if (wrapper != null){
                     log.debug("[Neptune RPC Client]: 客户端向服务端发送消息 [IP地址: {}, 端口号: {}]",
                             wrapper.getAddress(), wrapper.getPort());

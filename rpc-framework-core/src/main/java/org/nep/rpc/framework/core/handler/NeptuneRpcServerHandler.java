@@ -6,13 +6,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
-import org.nep.rpc.framework.core.serialize.SerializerFactory;
+import org.nep.rpc.framework.core.serialize.NeptuneSerializerFactory;
 
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,12 +35,12 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         NeptuneRpcProtocol protocol =  (NeptuneRpcProtocol) message;
         log.debug("message: {}", protocol);
         // 2. TODO 后序需要改进 获取序列化算法
-        INeptuneSerializer serializer = SerializerFactory.getSerializer(protocol.getSerializer());
+        INeptuneSerializer serializer = NeptuneSerializerFactory.getSerializer(protocol.getSerializer());
         // 3. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
         NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
         log.debug("invocation: {}", invocation);
         // 4. 从服务端容器中取出缓存的接口
-        Object target = NeptuneRpcServerCache.getService(invocation.getTargetClass());
+        Object target = NeptuneRpcServerCache.getService(invocation.getService());
         // 5. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
         if (target == null){
             log.error("[Neptune RPC Server]: 客户端调用的接口不存在");
@@ -72,7 +71,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
      * <h3>避免调用重载方法: 暂时的解决方案</h3>
      */
     public boolean checkMethod(Method method, NeptuneRpcInvocation invocation){
-        if (!method.getName().equals(invocation.getTargetMethod()))
+        if (!method.getName().equals(invocation.getMethod()))
             return false;
         if (method.getParameterCount() != invocation.getArgs().length)
             return false;

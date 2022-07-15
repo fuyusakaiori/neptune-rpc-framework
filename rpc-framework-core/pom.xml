@@ -13,12 +13,11 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <netty.version>4.1.77.Final</netty.version>
         <javassist.version>3.29.0-GA</javassist.version>
-        <jboss-marshalling-serial.version>2.0.12.Final</jboss-marshalling-serial.version>
-        <jboss-marshalling-river.version>2.0.12.Final</jboss-marshalling-river.version>
         <kryo.version>5.3.0</kryo.version>
-        <protobuf.version>3.21.1</protobuf.version>
         <hessian.version>4.0.66</hessian.version>
         <fastjson.version>2.0.7</fastjson.version>
+        <gson.version>2.9.0</gson.version>
+        <jackson.version>2.13.3</jackson.version>
         <hutool.version>5.8.3</hutool.version>
         <zookeeper.version>3.8.0</zookeeper.version>
         <curator.version>5.2.1</curator.version>
@@ -70,25 +69,27 @@
         </dependency>
 
         <!-- 序列化框架 -->
-        <!-- jboss: 接收方工具 -->
-        <dependency>
-            <groupId>org.jboss.marshalling</groupId>
-            <artifactId>jboss-marshalling-river</artifactId>
-            <version>${jboss-marshalling-river.version}</version>
-        </dependency>
-
-        <!--jboss: 发送方工具-->
-        <dependency>
-            <groupId>org.jboss.marshalling</groupId>
-            <artifactId>jboss-marshalling-serial</artifactId>
-            <version>${jboss-marshalling-serial.version}</version>
-        </dependency>
-
         <!-- json -->
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
         </dependency>
 
         <!-- kryo -->
@@ -96,13 +97,6 @@
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>${kryo.version}</version>
-        </dependency>
-
-        <!-- protobuf -->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>${protobuf.version}</version>
         </dependency>
 
         <!-- hessian -->

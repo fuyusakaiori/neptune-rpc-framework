@@ -19,13 +19,11 @@ import static org.nep.rpc.framework.core.common.util.StreamUtil.close;
 public class HessianSerializer implements INeptuneSerializer
 {
     @Override
-    public <T> byte[] serialize(T source) {
+    public byte[] serialize(Object source) {
         byte[] target = null;
-        ByteArrayOutputStream output = null;
         Hessian2Output hessian = null;
-        try {
+        try (ByteArrayOutputStream output = new ByteArrayOutputStream()){
             // 1. 初始化流对象
-            output = new ByteArrayOutputStream();
             hessian = new Hessian2Output(output);
             // 2. 序列化对象
             hessian.writeObject(source);
@@ -36,8 +34,6 @@ public class HessianSerializer implements INeptuneSerializer
             target = output.toByteArray();
         } catch (Exception e) {
             log.error("[Neptune RPC Serialize]: Hessian 序列化异常", e);
-        } finally {
-            close(output);
         }
         return target;
     }
@@ -50,17 +46,10 @@ public class HessianSerializer implements INeptuneSerializer
             hession = new Hessian2Input(
                     new ByteArrayInputStream(source));
             target = hession.readObject();
+            hession.close();
         } catch (Exception e) {
             log.error("[Neptune RPC Serialize]: Hessian 反序列化异常", e);
-        } finally {
-            try {
-                if (hession != null)
-                    hession.close();
-            } catch (IOException e) {
-                log.error("[Neptune RPC Serialize]: Hessian 关闭流对象异常", e);
-            }
         }
-
         return (T) target;
     }
 }

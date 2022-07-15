@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.core.protocal;
+package org.nep.rpc.framework.core.protocol;
 
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 

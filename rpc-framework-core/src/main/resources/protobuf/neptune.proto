@@ -1,0 +1,18 @@
+// 1. 版本号
+syntax = "proto3";
+// 2. 引入
+import "google/protobuf/any.proto";
+// 3. 包名
+package org.nep.protobuf;
+// 4. 路径名
+option java_package = "org.nep.rpc.framework.core.protocol.protobuf";
+// 5. 类名
+option java_outer_classname="NeptuneRpcProtobufInvocation";
+// 6. 消息名不可以和类名相同
+message NeptuneRpcProtobuf {
+  string uuid = 1;
+  string service = 2;
+  string method = 3;
+  repeated google.protobuf.Any args = 4;
+  repeated google.protobuf.Any response = 5;
+}

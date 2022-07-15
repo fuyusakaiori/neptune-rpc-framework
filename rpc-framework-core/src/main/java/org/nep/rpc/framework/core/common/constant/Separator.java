@@ -9,5 +9,7 @@ public class Separator {
     public static final String SLASH = "/";
     public static final String COLON = ":";
 
+    public static final String BLANK = " ";
+
 
 }

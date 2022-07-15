@@ -6,8 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.BackgroundCallback;
-import org.apache.curator.framework.recipes.cache.CuratorCache;
-import org.apache.curator.framework.recipes.cache.CuratorCacheListener;
+import org.apache.curator.framework.recipes.cache.*;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
@@ -17,6 +16,7 @@ import org.nep.rpc.framework.registry.listener.TreeNodeListener;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * <h3>Neptune RPC Client</h3>
@@ -196,6 +196,25 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
         // 1. 构建监听根结点
         CuratorCache curatorCache = CuratorCache.build(zookeeperClient, path);
         // 2. 构建监听器
+        CuratorCacheListener.builder()
+                .forInitialized(()->{
+
+                })
+                .forAll(((type, old, cur) -> {
+
+                }))
+                .forCreates(data -> {
+
+                })
+                .forChanges((old, cur) -> {
+
+                })
+                .forDeletes(data -> {
+
+                })
+                .forCreatesAndChanges((old, cur) -> {
+
+                });
         CuratorCacheListener listener =
                 CuratorCacheListener.builder()
                         .forPathChildrenCache(

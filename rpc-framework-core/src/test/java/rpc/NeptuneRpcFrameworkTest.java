@@ -2,24 +2,23 @@ package rpc;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.cache.*;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.common.constant.SerializerType;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxy;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
-import org.nep.rpc.framework.core.serialize.SerializerFactory;
+import org.nep.rpc.framework.core.serialize.NeptuneSerializerFactory;
 import org.nep.rpc.framework.registry.service.zookeeper.client.NeptuneZookeeperClient;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -27,7 +26,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -49,14 +47,9 @@ public class NeptuneRpcFrameworkTest
     public void messageQueueTest() throws InterruptedException {
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
         invocation.setArgs(null);
-        invocation.setTargetMethod(null);
-        invocation.setTargetClass(null);
+        invocation.setMethod(null);
+        invocation.setService(null);
         invocation.setUuid(RandomUtil.randomNumbers(6));
-    }
-
-    @Test
-    public void jsonTest(){
-        System.out.println(JSON.toJSONString("Hello Neptune RPC").getBytes().length);
     }
 
     @Test
@@ -165,13 +158,29 @@ public class NeptuneRpcFrameworkTest
     }
 
     @Test
+    @DisplayName(value = "Serializer Test")
     public void serializeTest(){
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
-        invocation.setArgs(new Object[]{114514});
-        invocation.setUuid(RandomUtil.randomString(6));
-        invocation.setTargetClass("IDataService.class");
-        invocation.setTargetMethod("send");
-        INeptuneSerializer serializer = SerializerFactory.getSerializer(SerializerType.SERIALIZER_JSON.getCode());
+        invocation.setUuid(String.valueOf(RandomUtil.randomInt(6)));
+        invocation.setTypes(new Class[]{String.class, Integer.class});
+        invocation.setArgs(new Object[]{"message"});
+        invocation.setService("INeptuneService.class");
+        invocation.setMethod("send");
+        INeptuneSerializer jsonSerializer = NeptuneSerializerFactory.getSerializer(
+                SerializerType.SERIALIZER_GSON.getCode());
+        System.out.println(jsonSerializer.deserialize(jsonSerializer.serialize(invocation), NeptuneRpcInvocation.class));
+        INeptuneSerializer jacksonSerializer =
+                NeptuneSerializerFactory.getSerializer(SerializerType.SERIALIZER_JACKSON.getCode());
+        System.out.println(jacksonSerializer.deserialize(jacksonSerializer.serialize(invocation), NeptuneRpcInvocation.class));
+        INeptuneSerializer jdkSerializer = NeptuneSerializerFactory.getSerializer(
+                SerializerType.SERIALIZER_JDK.getCode());
+        System.out.println(jdkSerializer.deserialize(jdkSerializer.serialize(invocation), NeptuneRpcInvocation.class));
+        INeptuneSerializer kryoSerializer = NeptuneSerializerFactory.getSerializer(
+                SerializerType.SERIALIZER_KRYO.getCode());
+        System.out.println(kryoSerializer.deserialize(kryoSerializer.serialize(invocation), NeptuneRpcInvocation.class));
+        INeptuneSerializer hessianSerializer = NeptuneSerializerFactory.getSerializer(
+                SerializerType.SERIALIZER_HESSIAN.getCode());
+        System.out.println(hessianSerializer.deserialize(hessianSerializer.serialize(invocation), NeptuneRpcInvocation.class));
     }
 
 

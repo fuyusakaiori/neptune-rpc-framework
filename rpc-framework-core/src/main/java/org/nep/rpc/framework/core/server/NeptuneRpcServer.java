@@ -14,7 +14,7 @@ import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
 import org.nep.rpc.framework.core.neptune.DataService;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcFrameDecoder;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.registry.service.RegistryService;
 import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
 import org.nep.rpc.framework.registry.url.DefaultURL;

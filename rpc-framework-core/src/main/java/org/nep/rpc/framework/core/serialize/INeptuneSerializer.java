@@ -3,8 +3,7 @@ package org.nep.rpc.framework.core.serialize;
 public interface INeptuneSerializer
 {
 
-
-    <T> byte[] serialize(T source);
+    byte[] serialize(Object source);
 
     <T> T deserialize(byte[] source, Class<T> clazz);
 

@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.internal.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.protocal.NeptuneRpcProtocol;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 
 import java.nio.charset.StandardCharsets;
 
