@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class DataService implements IDataService {
+public class NeptuneRpcService implements IDataService {
 
     @Override
     public String send(String request) {

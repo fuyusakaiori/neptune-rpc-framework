@@ -13,7 +13,7 @@ import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
-import org.nep.rpc.framework.core.neptune.DataService;
+import org.nep.rpc.framework.core.neptune.NeptuneRpcService;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.registry.service.RegistryService;
 import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
@@ -79,7 +79,7 @@ public class NeptuneRpcServer {
                 .option(ChannelOption.SO_RCVBUF, ServerConfigConstant.RECEIVE_BUFFER_SIZE) // 2.4 接收方缓冲区大小
                 .option(ChannelOption.SO_KEEPALIVE, true); // 2.5 如果超过两个小时没有数据发送, 那么就会发送探测报文
         // TODO 注: 缓存对外提供的接口 硬编码, 用于测试使用
-        registryClass(new DataService());
+        registryClass(new NeptuneRpcService());
         // 4. 服务注册
         registryServices();
         // 5. 启动服务器

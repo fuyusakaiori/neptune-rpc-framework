@@ -1,6 +1,5 @@
 package org.nep.rpc.framework.core.router.random;
 
-import cn.hutool.core.util.RandomUtil;
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
 import org.nep.rpc.framework.core.router.AbstractNeptuneRpcLoadBalance;
 

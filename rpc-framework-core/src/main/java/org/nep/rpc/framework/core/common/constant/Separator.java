@@ -11,5 +11,7 @@ public class Separator {
 
     public static final String BLANK = " ";
 
+    public static final String LINKER = "-";
+
 
 }
