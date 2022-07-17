@@ -8,7 +8,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
-import org.nep.rpc.framework.core.common.constant.ServerConfigConstant;
+import org.nep.rpc.framework.core.common.constant.ServerConfig;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
@@ -22,7 +22,7 @@ import org.nep.rpc.framework.registry.url.URL;
 
 import java.net.InetSocketAddress;
 
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.*;
+import static org.nep.rpc.framework.core.common.constant.Common.*;
 
 /**
  * <h3>Neptune RPC 服务器</h3>
@@ -70,13 +70,13 @@ public class NeptuneRpcServer {
         // 1. 初始化服务器
         server = new ServerBootstrap();
         // 2. 初始化事件循环组
-        boss = new NioEventLoopGroup(ServerConfigConstant.BOSS_THREAD_COUNT);
-        worker = new NioEventLoopGroup(ServerConfigConstant.WORKER_THREAD_COUNT);
+        boss = new NioEventLoopGroup(ServerConfig.BOSS_THREAD_COUNT);
+        worker = new NioEventLoopGroup(ServerConfig.WORKER_THREAD_COUNT);
         // 3. 配置参数
         server.option(ChannelOption.TCP_NODELAY, true)  // 2.1 禁用 Nagle 算法
-                .option(ChannelOption.SO_BACKLOG, ServerConfigConstant.BACK_LOG_SIZE) // 2.2 服务器端是单线程处理, 所以会有等待队列
-                .option(ChannelOption.SO_SNDBUF, ServerConfigConstant.SEND_BUFFER_SIZE) // 2.3 发送方缓冲区大小
-                .option(ChannelOption.SO_RCVBUF, ServerConfigConstant.RECEIVE_BUFFER_SIZE) // 2.4 接收方缓冲区大小
+                .option(ChannelOption.SO_BACKLOG, ServerConfig.BACK_LOG_SIZE) // 2.2 服务器端是单线程处理, 所以会有等待队列
+                .option(ChannelOption.SO_SNDBUF, ServerConfig.SEND_BUFFER_SIZE) // 2.3 发送方缓冲区大小
+                .option(ChannelOption.SO_RCVBUF, ServerConfig.RECEIVE_BUFFER_SIZE) // 2.4 接收方缓冲区大小
                 .option(ChannelOption.SO_KEEPALIVE, true); // 2.5 如果超过两个小时没有数据发送, 那么就会发送探测报文
         // TODO 注: 缓存对外提供的接口 硬编码, 用于测试使用
         registryClass(new NeptuneRpcService());

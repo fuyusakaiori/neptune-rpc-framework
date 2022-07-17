@@ -6,7 +6,7 @@ import org.nep.rpc.framework.core.common.constant.SerializerType;
 
 import java.io.Serializable;
 
-import static org.nep.rpc.framework.core.common.constant.ProtocolConstant.*;
+import static org.nep.rpc.framework.core.common.constant.Protocol.*;
 
 /**
  * <h3>Neptune RPC 请求协议体/h3>

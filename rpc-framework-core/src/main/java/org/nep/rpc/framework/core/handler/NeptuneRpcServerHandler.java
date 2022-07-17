@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.PRIMITIVE_TO_WRAPPER;
+import static org.nep.rpc.framework.core.common.constant.Common.PRIMITIVE_TO_WRAPPER;
 
 /**
  * <h3>Neptune RPC 服务器消息处理器</h3>

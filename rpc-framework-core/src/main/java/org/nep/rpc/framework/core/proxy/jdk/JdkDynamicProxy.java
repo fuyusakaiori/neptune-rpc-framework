@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeoutException;
 
-import static org.nep.rpc.framework.core.common.constant.CommonConstant.CALL_TIME_OUT;
+import static org.nep.rpc.framework.core.common.constant.Common.CALL_TIME_OUT;
 
 /**
  * <h3>JDK 动态代理</h3>

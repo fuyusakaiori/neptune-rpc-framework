@@ -3,7 +3,8 @@ package org.nep.rpc.framework.core.common.constant;
 /**
  * <h3>服务器配置</h3>
  */
-public class ServerConfigConstant {
+public class ServerConfig
+{
     // boss 线程池线程数量
     public static final int BOSS_THREAD_COUNT = 4;
     // worker 线程池线程数量

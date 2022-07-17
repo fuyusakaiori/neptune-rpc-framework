@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.common.constant.ProtocolConstant;
+import org.nep.rpc.framework.core.common.constant.Protocol;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 
 import java.nio.charset.StandardCharsets;
@@ -20,7 +20,7 @@ public class NeptuneRpcDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
         // 1. 读取魔数字段 7B
-        String magicNumber = buf.readBytes(ProtocolConstant.MAGIC_NUMBER.length()).toString(StandardCharsets.UTF_8);
+        String magicNumber = buf.readBytes(Protocol.MAGIC_NUMBER.length()).toString(StandardCharsets.UTF_8);
         // 2. 读取协议版本号 1B
         byte protocolVersion = buf.readByte();
         // 3. 读取采用的序列化算法类型 1B
