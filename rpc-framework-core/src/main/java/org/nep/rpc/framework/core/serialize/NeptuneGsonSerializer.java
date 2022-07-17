@@ -1,8 +1,7 @@
-package org.nep.rpc.framework.core.serialize.json;
+package org.nep.rpc.framework.core.serialize;
 
 import com.google.gson.*;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -11,7 +10,7 @@ import java.nio.charset.StandardCharsets;
  * <h3>FastJson 序列化</h3>
  */
 @Slf4j
-public class GsonSerializer implements INeptuneSerializer {
+public class NeptuneGsonSerializer implements INeptuneSerializer {
 
     private static final ThreadLocal<Gson> GSON_LOCAL = ThreadLocal.withInitial(()->{
         return new GsonBuilder()

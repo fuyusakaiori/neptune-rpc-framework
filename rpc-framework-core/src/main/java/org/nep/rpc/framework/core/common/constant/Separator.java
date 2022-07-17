@@ -10,8 +10,8 @@ public class Separator {
     public static final String COLON = ":";
 
     public static final String BLANK = " ";
-
     public static final String LINKER = "-";
+    public static final String DOT = ".";
 
 
 }

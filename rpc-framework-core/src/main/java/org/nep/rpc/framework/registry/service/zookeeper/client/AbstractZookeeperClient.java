@@ -8,7 +8,6 @@ import org.apache.curator.framework.api.BackgroundCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
-import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public abstract class AbstractZookeeperClient {
     public AbstractZookeeperClient(NeptuneRpcRegisterConfig config) {
         if (config == null)
             throw new RuntimeException("[Neptune RPC Server]: 注册中心配置文件为空");
-        this.connectString = config.getRegistry();
+        this.connectString = config.getAddress();
         this.connectTime = config.getConnectTime();
         this.sessionTime = config.getSessionTime();
         this.retryPolicy = config.getRetryPolicy();

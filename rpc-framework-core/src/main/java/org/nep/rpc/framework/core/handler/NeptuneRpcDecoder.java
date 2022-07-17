@@ -30,8 +30,6 @@ public class NeptuneRpcDecoder extends ByteToMessageDecoder {
         // 5. 读取正文消息体
         byte[] content = new byte[contentLength];
         buf.readBytes(content, 0, contentLength);
-        log.debug("magic: {}, version: {}, serializer: {}, length: {}, content:{}",
-                magicNumber, protocolVersion, serializer, contentLength, content);
         // 6. 将从缓冲区中接收到的数据填充到协议中, 然后交给服务器处理器进行处理; 不在这里进行反序列化
         out.add(new NeptuneRpcProtocol(protocolVersion, serializer, content));
     }

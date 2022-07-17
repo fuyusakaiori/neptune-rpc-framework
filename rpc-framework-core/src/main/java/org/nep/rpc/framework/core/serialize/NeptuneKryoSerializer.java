@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.core.serialize.kryo;
+package org.nep.rpc.framework.core.serialize;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -6,23 +6,18 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.serializers.DefaultArraySerializers;
 import com.esotericsoftware.kryo.serializers.DefaultSerializers;
 import com.esotericsoftware.kryo.serializers.FieldSerializer;
-import com.esotericsoftware.kryo.serializers.JavaSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.K;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
-import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-
-import static org.nep.rpc.framework.core.common.util.StreamUtil.close;
 
 /**
  * <h3>Kryo 序列化</h3>
  */
 @Slf4j
 @SuppressWarnings("unchecked")
-public class KryoSerializer implements INeptuneSerializer {
+public class NeptuneKryoSerializer implements INeptuneSerializer {
     /**
      * <h3>1. Kryo 是非线程安全的 </h3>
      * <h3>2. 采用 ThreadLocal 控制并发序列化</h3>

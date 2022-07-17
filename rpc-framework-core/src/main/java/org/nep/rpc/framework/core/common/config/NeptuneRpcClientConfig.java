@@ -1,10 +1,12 @@
 package org.nep.rpc.framework.core.common.config;
 
 import lombok.Data;
+import lombok.ToString;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 
 @Data
+@ToString
 public class NeptuneRpcClientConfig {
     // 服务端 IP 地址
     private String address;

@@ -11,7 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
-import org.nep.rpc.framework.core.common.constant.SerializerType;
+import org.nep.rpc.framework.core.serialize.NeptuneSerializerType;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxy;
@@ -19,13 +19,11 @@ import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.serialize.NeptuneSerializerFactory;
 import org.nep.rpc.framework.registry.service.zookeeper.client.NeptuneZookeeperClient;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -96,7 +94,7 @@ public class NeptuneRpcFrameworkTest
     public void propertiesTest(){
         NeptuneRpcServerConfig serverConfig = PropertyBootStrap.loadServerConfiguration();
         log.debug("sever config application: {}", serverConfig.getApplication());
-        log.debug("sever config registry address: {}", serverConfig.getConfig().getRegistry());
+        log.debug("sever config registry address: {}", serverConfig.getConfig().getAddress());
         log.debug("sever config registry connectTime: {}", serverConfig.getConfig().getConnectTime());
         log.debug("sever config registry sessionTime: {}", serverConfig.getConfig().getSessionTime());
         log.debug("sever config registry nameSpace: {}", serverConfig.getConfig().getNamespace());
@@ -158,7 +156,7 @@ public class NeptuneRpcFrameworkTest
     }
 
     @Test
-    @DisplayName(value = "Serializer Test")
+    @DisplayName(value = "序列化算法测试")
     public void serializeTest(){
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
         invocation.setUuid(String.valueOf(RandomUtil.randomInt(6)));
@@ -167,20 +165,27 @@ public class NeptuneRpcFrameworkTest
         invocation.setService("INeptuneService.class");
         invocation.setMethod("send");
         INeptuneSerializer jsonSerializer = NeptuneSerializerFactory.getSerializer(
-                SerializerType.SERIALIZER_GSON.getCode());
+                NeptuneSerializerType.SERIALIZER_GSON.getCode());
         System.out.println(jsonSerializer.deserialize(jsonSerializer.serialize(invocation), NeptuneRpcInvocation.class));
         INeptuneSerializer jacksonSerializer =
-                NeptuneSerializerFactory.getSerializer(SerializerType.SERIALIZER_JACKSON.getCode());
+                NeptuneSerializerFactory.getSerializer(NeptuneSerializerType.SERIALIZER_JACKSON.getCode());
         System.out.println(jacksonSerializer.deserialize(jacksonSerializer.serialize(invocation), NeptuneRpcInvocation.class));
         INeptuneSerializer jdkSerializer = NeptuneSerializerFactory.getSerializer(
-                SerializerType.SERIALIZER_JDK.getCode());
+                NeptuneSerializerType.SERIALIZER_JDK.getCode());
         System.out.println(jdkSerializer.deserialize(jdkSerializer.serialize(invocation), NeptuneRpcInvocation.class));
         INeptuneSerializer kryoSerializer = NeptuneSerializerFactory.getSerializer(
-                SerializerType.SERIALIZER_KRYO.getCode());
+                NeptuneSerializerType.SERIALIZER_KRYO.getCode());
         System.out.println(kryoSerializer.deserialize(kryoSerializer.serialize(invocation), NeptuneRpcInvocation.class));
         INeptuneSerializer hessianSerializer = NeptuneSerializerFactory.getSerializer(
-                SerializerType.SERIALIZER_HESSIAN.getCode());
+                NeptuneSerializerType.SERIALIZER_HESSIAN.getCode());
         System.out.println(hessianSerializer.deserialize(hessianSerializer.serialize(invocation), NeptuneRpcInvocation.class));
+    }
+
+    @Test
+    @DisplayName(value = "配置文件加载测试")
+    public void loadPropertiesTest(){
+        PropertyBootStrap.loadServerConfiguration();
+        PropertyBootStrap.loadClientConfiguration();
     }
 
 

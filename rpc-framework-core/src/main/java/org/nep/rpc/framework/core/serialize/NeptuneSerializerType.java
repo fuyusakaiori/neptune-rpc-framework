@@ -1,22 +1,23 @@
-package org.nep.rpc.framework.core.common.constant;
+package org.nep.rpc.framework.core.serialize;
 
 /**
  * <h3>序列化算法类型</h3>
  */
-public enum SerializerType {
+public enum NeptuneSerializerType
+{
 
-    SERIALIZER_JDK(0, "Jdk 序列化"),
-    SERIALIZER_HESSIAN(1, "Hessian 序列化"),
-    SERIALIZER_GSON(2, "Gson 序列化"),
-    SERIALIZER_JACKSON(3, "JackSon 序列化"),
-    SERIALIZER_KRYO(4, "Kryo 序列化");
+    SERIALIZER_JDK(0, "JdkSerializer"),
+    SERIALIZER_HESSIAN(1, "HessianSerializer"),
+    SERIALIZER_GSON(2, "GsonSerializer"),
+    SERIALIZER_JACKSON(3, "JackSonSerializer"),
+    SERIALIZER_KRYO(4, "KryoSerializer");
 
     // 序列化算法代号
     private final byte code;
     // 序列化算法名称
     private final String name;
 
-    SerializerType(int code, String name) {
+    NeptuneSerializerType(int code, String name) {
         this.code = (byte) code;
         this.name = name;
     }

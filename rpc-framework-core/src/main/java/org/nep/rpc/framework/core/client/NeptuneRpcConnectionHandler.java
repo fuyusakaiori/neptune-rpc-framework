@@ -56,6 +56,10 @@ public class NeptuneRpcConnectionHandler {
         // 6. 准备建立连接
         try {
             ChannelFuture future = client.connect(new InetSocketAddress(address, port)).sync();
+            if (!future.isSuccess()){
+                log.warn("[Neptune RPC Client]: address: {}, port: {}, 服务端未上线", address, port);
+                return;
+            }
             NeptuneRpcInvoker wrapper = new NeptuneRpcInvoker();
             wrapper.setPort(port);
             wrapper.setAddress(address);

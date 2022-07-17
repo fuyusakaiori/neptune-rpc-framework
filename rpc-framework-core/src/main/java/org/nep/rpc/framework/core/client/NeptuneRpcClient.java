@@ -167,7 +167,7 @@ public class NeptuneRpcClient {
                 // 1. 从阻塞队列中获取消息
                 NeptuneRpcInvocation invocation = NeptuneRpcClientCache.MessageQueue.receive();
                 log.debug("[Neptune RPC Client]: 异步线程获取到消息 {}", invocation);
-                // 2. 序列化: 暂时采用 json
+                // 2. 序列化
                 NeptuneRpcProtocol message =
                         new NeptuneRpcProtocol(serializer.serialize(invocation));
                 // 3. 获取服务提供者

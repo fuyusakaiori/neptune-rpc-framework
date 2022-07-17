@@ -5,6 +5,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
@@ -90,6 +92,7 @@ public class NeptuneRpcServer {
                         @Override
                         protected void initChannel(NioSocketChannel channel) throws Exception {
                             // 6. 添加处理器
+                            channel.pipeline().addLast(new LoggingHandler(LogLevel.INFO));
                             channel.pipeline().addLast(new NeptuneRpcFrameDecoder()); // 6.1 定长解码器 防止黏包和半包问题
                             channel.pipeline().addLast(new NeptuneRpcEncoder()); // 6.2 编码器
                             channel.pipeline().addLast(new NeptuneRpcDecoder()); // 6.3 解码器
@@ -103,19 +106,23 @@ public class NeptuneRpcServer {
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             log.error("[Neptune RPC Server]: 服务器出现异常", e);
-        }finally {
-            // 7. 关闭服务器
-            close();
         }
     }
 
     /**
      * <h3>关闭服务器</h3>
      */
-    private void close() {
-        worker.shutdownGracefully();
-        boss.shutdownGracefully();
-        future.channel().close();
+    public void close() {
+        try {
+            worker.shutdownGracefully();
+            boss.shutdownGracefully();
+            future.channel().close().sync();
+            // TODO 对外提供的服务都应该下线
+            registryService.cancel(getUrl(new Class[]{NeptuneRpcService.class}));
+            future.channel().close();
+        } catch (InterruptedException e) {
+            log.error("[Neptune RPC Server]: 服务器关闭出现异常");
+        }
         log.info("[Neptune RPC Server]: 服务器关闭");
     }
 

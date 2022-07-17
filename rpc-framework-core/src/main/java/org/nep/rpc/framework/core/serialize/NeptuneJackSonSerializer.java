@@ -1,14 +1,13 @@
-package org.nep.rpc.framework.core.serialize.json;
+package org.nep.rpc.framework.core.serialize;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.io.IOException;
 
 @Slf4j
-public class JackSonSerializer implements INeptuneSerializer {
+public class NeptuneJackSonSerializer implements INeptuneSerializer {
 
     private static final ThreadLocal<ObjectMapper> MAPPER_LOCAL =
             ThreadLocal.withInitial(ObjectMapper::new);

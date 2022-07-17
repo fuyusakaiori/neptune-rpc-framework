@@ -1,18 +1,15 @@
-package org.nep.rpc.framework.core.serialize.jdk;
+package org.nep.rpc.framework.core.serialize;
 
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.io.*;
-
-import static org.nep.rpc.framework.core.common.util.StreamUtil.close;
 
 /**
  * <h3>JDK 序列化</h3>
  */
 @Slf4j
 @SuppressWarnings("unchecked")
-public class JdkSerializer implements INeptuneSerializer
+public class NeptuneJdkSerializer implements INeptuneSerializer
 {
 
     @Override

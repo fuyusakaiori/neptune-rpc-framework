@@ -2,7 +2,7 @@ package org.nep.rpc.framework.core.protocol;
 
 import lombok.Data;
 import lombok.ToString;
-import org.nep.rpc.framework.core.common.constant.SerializerType;
+import org.nep.rpc.framework.core.serialize.NeptuneSerializerType;
 
 import java.io.Serializable;
 
@@ -30,7 +30,7 @@ public class NeptuneRpcProtocol implements Serializable {
     private byte[] content;
 
     public NeptuneRpcProtocol(byte[] content) {
-        this(PROTOCOL_VERSION,SerializerType.SERIALIZER_GSON.getCode(), content);
+        this(PROTOCOL_VERSION, NeptuneSerializerType.SERIALIZER_KRYO.getCode(), content);
     }
 
     public NeptuneRpcProtocol(byte[] content, byte serializer){
@@ -38,7 +38,7 @@ public class NeptuneRpcProtocol implements Serializable {
     }
 
     public NeptuneRpcProtocol(byte protocolVersion, byte[] content){
-        this(protocolVersion, SerializerType.SERIALIZER_GSON.getCode(), content);
+        this(protocolVersion, NeptuneSerializerType.SERIALIZER_KRYO.getCode(), content);
     }
 
     public NeptuneRpcProtocol(byte protocolVersion, byte serializer, byte[] content) {
