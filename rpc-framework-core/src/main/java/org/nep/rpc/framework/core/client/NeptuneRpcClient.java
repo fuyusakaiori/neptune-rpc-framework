@@ -162,7 +162,6 @@ public class NeptuneRpcClient {
     private final class AsyncSendTask implements Runnable{
         @Override
         public void run() {
-            // TODO 如果客户端突然宕机, 消息发到一半怎么处理
             while (true){
                 // 1. 从阻塞队列中获取消息
                 NeptuneRpcInvocation invocation = NeptuneRpcClientCache.MessageQueue.receive();

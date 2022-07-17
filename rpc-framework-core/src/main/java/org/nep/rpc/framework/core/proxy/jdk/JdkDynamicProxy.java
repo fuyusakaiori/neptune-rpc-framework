@@ -3,11 +3,16 @@ package org.nep.rpc.framework.core.proxy.jdk;
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
+import org.nep.rpc.framework.core.neptune.NeptuneRpcService;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.concurrent.TimeoutException;
 
 import static org.nep.rpc.framework.core.common.constant.Common.CALL_TIME_OUT;
@@ -36,6 +41,7 @@ public class JdkDynamicProxy implements InvocationHandler {
         invocation.setArgs(args);
         invocation.setMethod(method.getName());
         invocation.setService(clazz.getName());
+        invocation.setTypes(method.getParameterTypes());
         invocation.setUuid(RandomUtil.randomNumbers(6));
         // 2. 把即将要发送的请求的序列号填充到哈希表中, 确保接收的时候是对应的
         NeptuneRpcClientCache.Windows.put(invocation.getUuid(), "");
@@ -47,9 +53,12 @@ public class JdkDynamicProxy implements InvocationHandler {
         // 5. 如果当前时间始终在超时时间之前, 那么就持续轮询, 看是否有结果返回
         while (LocalDateTime.now().isBefore(begin.plusMinutes(CALL_TIME_OUT))){
             Object result = NeptuneRpcClientCache.Windows.get(invocation.getUuid());
-            if (result instanceof NeptuneRpcInvocation){
-                log.debug("[Neptune RPC Client]: 服务器响应 {}", result);
-                return ((NeptuneRpcInvocation) result).getResponse();
+            if (result instanceof NeptuneRpcResponse){
+                log.info("[Neptune RPC Client]: 服务器响应 {}", result);
+                NeptuneRpcResponse response = (NeptuneRpcResponse) result;
+                if (NeptuneRpcResponseCode.FAIL.getCode() == response.getCode())
+                    throw new RuntimeException(response.getMessage());
+                return response.getBody();
             }
         }
         // 6. 如果超时那么就直接抛出异常

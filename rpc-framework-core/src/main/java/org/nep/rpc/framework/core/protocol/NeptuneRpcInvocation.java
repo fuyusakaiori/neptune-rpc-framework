@@ -26,7 +26,4 @@ public class NeptuneRpcInvocation implements Serializable {
     private Object[] args;
     // 4. 参数类型
     private Class<?>[] types;
-    // 5. 响应结果
-    private Object response;
-
 }

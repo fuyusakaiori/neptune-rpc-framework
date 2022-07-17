@@ -36,11 +36,6 @@ public class NeptuneRpcFrameworkTest
 
     }
 
-    public <T> T getProxy(Class<T> clazz) {
-        return (T) Proxy.newProxyInstance(
-                this.getClass().getClassLoader(), clazz.getInterfaces(), new JdkDynamicProxy(clazz));
-    }
-
     @Test
     public void messageQueueTest() throws InterruptedException {
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
@@ -88,20 +83,6 @@ public class NeptuneRpcFrameworkTest
 
     public void method(String value){
         log.info("String value: {}", value);
-    }
-
-    @Test
-    public void propertiesTest(){
-        NeptuneRpcServerConfig serverConfig = PropertyBootStrap.loadServerConfiguration();
-        log.debug("sever config application: {}", serverConfig.getApplication());
-        log.debug("sever config registry address: {}", serverConfig.getConfig().getAddress());
-        log.debug("sever config registry connectTime: {}", serverConfig.getConfig().getConnectTime());
-        log.debug("sever config registry sessionTime: {}", serverConfig.getConfig().getSessionTime());
-        log.debug("sever config registry nameSpace: {}", serverConfig.getConfig().getNamespace());
-        log.debug("sever config registry policy: {}", serverConfig.getConfig().getRetryPolicy());
-        log.debug("sever config port: {}", serverConfig.getPort());
-        NeptuneZookeeperClient client = new NeptuneZookeeperClient(serverConfig.getConfig());
-        client.createNode("/p1");
     }
 
     @Test
@@ -186,6 +167,14 @@ public class NeptuneRpcFrameworkTest
     public void loadPropertiesTest(){
         PropertyBootStrap.loadServerConfiguration();
         PropertyBootStrap.loadClientConfiguration();
+    }
+
+    @Test
+    @DisplayName(value = "数组内容比较测试")
+    public void arraysCompareTest(){
+        Class<?>[] types1 = new Class<?>[]{int.class, String.class};
+        Class<?>[] types2 = new Class<?>[]{int.class, String.class};
+        System.out.println(Arrays.equals(types1, types2));
     }
 
 

@@ -1,6 +1,7 @@
 package org.nep.rpc.framework.core.handler;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ArrayUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -8,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.serialize.NeptuneSerializerFactory;
 
@@ -31,6 +34,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) throws Exception {
+        NeptuneRpcResponse response = new NeptuneRpcResponse();
         // 1. 从解码器中获取到的消息转换成协议的形式
         NeptuneRpcProtocol protocol =  (NeptuneRpcProtocol) message;
         log.debug("message: {}", protocol);
@@ -43,28 +47,31 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         Object target = NeptuneRpcServerCache.getService(invocation.getService());
         // 5. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
         if (target == null){
-            log.error("[Neptune RPC Server]: 客户端调用的接口不存在");
-            invocation.setResponse("客户端调用的接口不存在");
-            protocol.setContent(serializer.serialize(invocation));
+            response.setUuid(invocation.getUuid());
+            response.setCode(NeptuneRpcResponseCode.FAIL.getCode());
+            response.setMessage("客户端调用的接口不存在");
+            protocol.setContent(serializer.serialize(response));
             ctx.writeAndFlush(protocol);
+            log.error("[Neptune RPC Server]: 客户端调用的接口不存在");
             return;
         }
         // 6. 获取目标类中的所有方法
         Method[] methods = target.getClass().getDeclaredMethods();
-        log.debug("methods: {}", methods.length);
         // 7. 开始匹配方法然后调用
         Object result = null;
         for (Method method : methods) {
-            // 注: 如果只比较方法名, 那么很有可能出现方法重载的情况, 最后导致方法调错
             if(checkMethod(method, invocation)){
                 result = method.invoke(target, invocation.getArgs());
                 break;
             }
         }
         // 8. 序列化结果写回给客户端; 暂时采用 json
-        invocation.setResponse(result);
+        response.setUuid(invocation.getUuid());
+        response.setCode(NeptuneRpcResponseCode.SUCCESS.getCode());
+        response.setMessage(NeptuneRpcResponseCode.SUCCESS.getMessage());
+        response.setBody(result);
         ctx.writeAndFlush(new NeptuneRpcProtocol(protocol.getProtocolVersion(), protocol.getSerializer(),
-                serializer.serialize(invocation)));
+                serializer.serialize(response)));
     }
 
     /**
@@ -75,15 +82,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
             return false;
         if (method.getParameterCount() != invocation.getArgs().length)
             return false;
-        List<String> target = Arrays.stream(invocation.getArgs())
-                                      .map(arg -> arg.getClass().getTypeName())
-                                      .collect(Collectors.toList());
-        List<String> source = Arrays.stream(method.getParameterTypes())
-                                      .map(parameter -> parameter.isPrimitive()
-                                                                ? PRIMITIVE_TO_WRAPPER.get(parameter.getTypeName())
-                                                                : parameter.getTypeName())
-                                      .collect(Collectors.toList());
-        return CollectionUtil.containsAll(target, source);
+        return !ArrayUtil.equals(invocation.getTypes(), method.getParameterTypes());
     }
 
     /**
