@@ -11,7 +11,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
 @ToString
 public class NeptuneRpcResponse implements Serializable {
 

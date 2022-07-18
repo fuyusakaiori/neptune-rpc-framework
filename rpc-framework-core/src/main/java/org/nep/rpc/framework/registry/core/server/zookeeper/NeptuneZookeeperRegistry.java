@@ -1,14 +1,13 @@
-package org.nep.rpc.framework.registry.service.zookeeper;
+package org.nep.rpc.framework.registry.core.server.zookeeper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.constant.Separator;
-import org.nep.rpc.framework.registry.service.AbstractRegister;
-import org.nep.rpc.framework.registry.service.RegistryService;
-import org.nep.rpc.framework.registry.service.zookeeper.client.AbstractZookeeperClient;
-import org.nep.rpc.framework.registry.service.zookeeper.client.NeptuneZookeeperClient;
-import org.nep.rpc.framework.registry.url.URL;
+import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
+import org.nep.rpc.framework.registry.core.server.zookeeper.client.NeptuneZookeeperClient;
+import org.nep.rpc.framework.registry.core.server.zookeeper.client.AbstractZookeeperClient;
+import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 import java.util.List;
 
@@ -16,14 +15,14 @@ import java.util.List;
  * <h3>Neptune RPC Register</h3>
  */
 @Slf4j
-public class NeptuneZookeeperRegister extends AbstractRegister implements RegistryService {
+public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
     private final AbstractZookeeperClient zookeeperClient;
     // 消费者
     private static final String CONSUMER = "/consumer";
     // 提供者
     private static final String PROVIDER = "/provider";
 
-    public NeptuneZookeeperRegister(NeptuneRpcRegisterConfig config) {
+    public NeptuneZookeeperRegistry(NeptuneRpcRegisterConfig config) {
         this.zookeeperClient = new NeptuneZookeeperClient(config);
     }
 
@@ -31,7 +30,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
      * <h3>注: 因为在创建客户端的时候就设置好了命名空间, 所以不需要判断根目录是否存在</h3>
      */
     @Override
-    public void register(URL url) {
+    public void register(NeptuneURL url) {
         // 1. 将原本的路径转换为字符串, 作为数据存储在结点中
         String data = url.toProviderString();
         // 2. 检查结点是否存在
@@ -48,13 +47,13 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     }
 
     @Override
-    public void cancel(URL url) {
+    public void cancel(NeptuneURL url) {
         zookeeperClient.deleteNode(toProviderPath(url));
         super.cancel(url);
     }
 
     @Override
-    public void subscribe(URL url) {
+    public void subscribe(NeptuneURL url) {
         // 1. 将原本的路径转换为字符串, 作为数据存储在结点中
         String data = url.toConsumerString();
         String path = toConsumerPath(url);
@@ -68,36 +67,16 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     }
 
     @Override
-    public void unSubscribe(URL url) {
+    public void unSubscribe(NeptuneURL url) {
         zookeeperClient.deleteNode(toConsumerPath(url));
         super.unSubscribe(url);
-    }
-
-    @Override
-    public void beforeSubscribe(URL url) {
-
-    }
-
-    /**
-     * <h3>订阅服务之后就需要监听这个服务, 防止发生变动</h3>
-     */
-    @Override
-    public void afterSubscribe(URL url) {
-        String root = Separator.SLASH + url.getServiceName() + PROVIDER;
-        log.debug("path: {}", Separator.SLASH + url.getServiceName() + PROVIDER);
-        // 1. 监听服务提供者路径下所有的子结点
-        zookeeperClient.addChildrenNodeWatcher(root);
-        // 2. 监听每个子结点数据变化, 主要就是监听权重
-        List<String> providers = providers(url.getServiceName());
-        log.debug("providers: {}", providers);
-        providers.forEach(path -> zookeeperClient.addNodeWatcher(root + Separator.SLASH + path));
     }
 
     /**
      * <h3>根据服务名找到所有提供这个服务的服务器</h3>
      */
     @Override
-    public List<String> providers(String serviceName) {
+    public List<String> lookup(String serviceName) {
         if (serviceName == null){
             log.error("[Neptune RPC Zookeeper]: 服务名不可以为空");
             return null;
@@ -108,14 +87,29 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     }
 
     @Override
-    public List<String> getServiceAllNodes() {
-        return null;
+    public void beforeSubscribe(NeptuneURL url) {
+
+    }
+
+    /**
+     * <h3>订阅服务之后就需要监听这个服务, 防止发生变动</h3>
+     */
+    @Override
+    public void afterSubscribe(NeptuneURL url) {
+        String root = Separator.SLASH + url.getServiceName() + PROVIDER;
+        log.debug("path: {}", Separator.SLASH + url.getServiceName() + PROVIDER);
+        // 1. 监听服务提供者路径下所有的子结点
+        zookeeperClient.addChildrenNodeWatcher(root);
+        // 2. 监听每个子结点数据变化, 主要就是监听权重
+        List<String> providers = lookup(url.getServiceName());
+        log.debug("providers: {}", providers);
+        providers.forEach(path -> zookeeperClient.addNodeWatcher(root + Separator.SLASH + path));
     }
 
     /**
      * <h3>把 URL 转换为服务提供者结点的名称</h3>
      */
-    private String toProviderPath(URL url){
+    private String toProviderPath(NeptuneURL url){
         log.debug("url: {}", url);
         return Separator.SLASH + url.getServiceName() + PROVIDER + Separator.SLASH
                        + url.getAddress() + Separator.COLON + url.getPort();
@@ -124,7 +118,7 @@ public class NeptuneZookeeperRegister extends AbstractRegister implements Regist
     /**
      * <h3>把 URL 转换为服务消费者结点的名称</h3>
      */
-    private String toConsumerPath(URL url){
+    private String toConsumerPath(NeptuneURL url){
         log.debug("url: {}", url);
         return Separator.SLASH + url.getServiceName() + CONSUMER + Separator.SLASH
                 + url.getApplicationName() + Separator.COLON + url.getAddress() + Separator.COLON + url.getPort();

@@ -1,13 +1,9 @@
 package org.nep.rpc.framework.registry.url;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.constant.Separator;
-
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * <h3>默认的结点格式</h3>
@@ -15,7 +11,7 @@ import java.util.Objects;
 @Slf4j
 @Data
 @ToString
-public class DefaultURL implements URL {
+public class DefaultURL implements NeptuneURL {
 
     /**
      * <h3>对外提供的接口或者类名称</h3>

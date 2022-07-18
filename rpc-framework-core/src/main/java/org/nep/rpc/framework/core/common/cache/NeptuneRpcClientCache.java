@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
 import org.nep.rpc.framework.core.common.constant.Separator;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
-import org.nep.rpc.framework.registry.url.URL;
+import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,9 +111,9 @@ public class NeptuneRpcClientCache {
      * <h3>客户端存储订阅的服务（接口）的地址</h3>
      */
     public static class Services {
-        private static final List<URL> services = new ArrayList<>();
+        private static final List<NeptuneURL> services = new ArrayList<>();
 
-        public static void subscribe(URL url){
+        public static void subscribe(NeptuneURL url){
             if (url == null){
                 log.error("[Neptune RPC Client]: 客户端订阅的服务不存在");
                 return;
@@ -121,7 +121,7 @@ public class NeptuneRpcClientCache {
             services.add(url);
         }
 
-        public static void cancel(URL url){
+        public static void cancel(NeptuneURL url){
             if (url == null){
                 log.error("[Neptune RPC Client]: 客户端取消订阅的服务不存在");
                 return;
@@ -132,7 +132,7 @@ public class NeptuneRpcClientCache {
         /**
          * <h3>如果服务提供者的权重之类的属性变了, 那么本地存储的内容就需要变化</h3>
          */
-        public static void update(URL url){
+        public static void update(NeptuneURL url){
             for (int index = 0; index < services.size(); index++) {
                 if (services.get(index).equals(url)){
                     services.set(index, url);
@@ -141,7 +141,7 @@ public class NeptuneRpcClientCache {
             }
         }
 
-        public static List<URL> getServices(){
+        public static List<NeptuneURL> getServices(){
             return services;
         }
 

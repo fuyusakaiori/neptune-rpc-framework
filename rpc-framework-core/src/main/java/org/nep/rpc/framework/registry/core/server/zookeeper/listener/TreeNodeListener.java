@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.registry.listener;
+package org.nep.rpc.framework.registry.core.server.zookeeper.listener;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;

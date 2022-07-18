@@ -20,10 +20,10 @@ import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
 import org.nep.rpc.framework.core.neptune.NeptuneRpcService;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
-import org.nep.rpc.framework.registry.service.RegistryService;
-import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
+import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
+import org.nep.rpc.framework.registry.core.server.zookeeper.NeptuneZookeeperRegistry;
 import org.nep.rpc.framework.registry.url.DefaultURL;
-import org.nep.rpc.framework.registry.url.URL;
+import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 import java.net.InetSocketAddress;
 
@@ -38,7 +38,7 @@ public class NeptuneRpcServer {
     private EventLoopGroup worker;
     private ChannelFuture future;
     // 注册中心
-    private RegistryService registryService;
+    private AbstractNeptuneRegister registry;
     // 服务端
     private ServerBootstrap server;
     // 服务器端配置类
@@ -58,7 +58,7 @@ public class NeptuneRpcServer {
      */
     public void startNeptune() {
         // 0. 初始化注册中心
-        registryService = new NeptuneZookeeperRegister(config.getConfig());
+        registry = new NeptuneZookeeperRegistry(config.getConfig());
         // 1. 初始化服务器
         server = new ServerBootstrap();
         // 2. 初始化事件循环组
@@ -108,7 +108,7 @@ public class NeptuneRpcServer {
             boss.shutdownGracefully();
             future.channel().close().sync();
             // TODO 对外提供的服务都应该下线
-            registryService.cancel(getUrl(new Class[]{NeptuneRpcService.class}));
+            registry.cancel(getUrl(new Class[]{NeptuneRpcService.class}));
             future.channel().close();
         } catch (InterruptedException e) {
             log.error("[Neptune RPC Server]: 服务器关闭出现异常");
@@ -151,8 +151,8 @@ public class NeptuneRpcServer {
         @Override
         public void run() {
             if (NeptuneRpcServerCache.hasServicesUrl()){
-                for (URL url : NeptuneRpcServerCache.getServiceUrls()) {
-                    registryService.register(url);
+                for (NeptuneURL url : NeptuneRpcServerCache.getServiceUrls()) {
+                    registry.register(url);
                 }
             }
         }
@@ -161,8 +161,8 @@ public class NeptuneRpcServer {
     /**
      * <h3>生成 URL</h3>
      */
-    private URL getUrl(Class<?>[] interfaces){
-        URL url = new DefaultURL();
+    private NeptuneURL getUrl(Class<?>[] interfaces){
+        NeptuneURL url = new DefaultURL();
         // 1. 从配置中获取服务器端口号
         url.setPort(config.getPort());
         // 2. 从配置中获取服务器所在 IP 地址

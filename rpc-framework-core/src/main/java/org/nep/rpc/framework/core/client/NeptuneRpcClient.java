@@ -19,10 +19,10 @@ import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 import org.nep.rpc.framework.interfaces.INeptuneService;
-import org.nep.rpc.framework.registry.service.AbstractRegister;
-import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
+import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
+import org.nep.rpc.framework.registry.core.server.zookeeper.NeptuneZookeeperRegistry;
 import org.nep.rpc.framework.registry.url.DefaultURL;
-import org.nep.rpc.framework.registry.url.URL;
+import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class NeptuneRpcClient {
     // 动态代理包装类
     private NeptuneRpcReference reference;
     // 注册中心
-    private AbstractRegister registry;
+    private AbstractNeptuneRegister registry;
     // 序列化算法
     private INeptuneSerializer serializer;
     // 客户端配置类
@@ -65,7 +65,7 @@ public class NeptuneRpcClient {
             return;
         }
         // 2. 初始化注册中心
-        registry = new NeptuneZookeeperRegister(config.getRegisterConfig());
+        registry = new NeptuneZookeeperRegistry(config.getRegisterConfig());
         // 3. 初始化序列化算法
         serializer = config.getSerializer();
         // 4. 初始化负载均衡策略
@@ -99,13 +99,13 @@ public class NeptuneRpcClient {
      * <h3>订阅服务: 将自己添加到注册中心</h3>
      */
     private void subscribeService(Class<?> service){
-        URL url = getUrl(service);
+        NeptuneURL url = getUrl(service);
         registry.subscribe(url);
         log.debug("[Neptune RPC Client]: 客户端注册服务");
     }
 
-    private URL getUrl(Class<?> service){
-        URL url = new DefaultURL();
+    private NeptuneURL getUrl(Class<?> service){
+        NeptuneURL url = new DefaultURL();
         url.setPort(config.getPort());
         // TODO 应该直接在配置文件中配置好, 暂时用于测试使用
         url.setServiceName(service.getName());
@@ -121,14 +121,14 @@ public class NeptuneRpcClient {
         // 1. 初始化连接器
         NeptuneRpcConnectionHandler.init(client, loadBalance);
         // 2. 建立连接
-        List<URL> serviceUrls = NeptuneRpcClientCache.Services.getServices();
-        for (URL url : serviceUrls) {
+        List<NeptuneURL> serviceUrls = NeptuneRpcClientCache.Services.getServices();
+        for (NeptuneURL url : serviceUrls) {
             String service = url.getServiceName();
             // 2.1. 客户端分别和每个提供服务的服务器建立连接
-            registry.providers(service)
+            registry.lookup(service)
                     .forEach(path -> NeptuneRpcConnectionHandler.connect(service, path));
             // 2.2. 监听建立连接的服务器
-            URL defaultURL = new DefaultURL();
+            NeptuneURL defaultURL = new DefaultURL();
             defaultURL.setServiceName(service);
             registry.afterSubscribe(defaultURL);
         }
