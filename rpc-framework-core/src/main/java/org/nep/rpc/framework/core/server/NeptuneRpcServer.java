@@ -18,7 +18,7 @@ import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
-import org.nep.rpc.framework.core.neptune.NeptuneRpcService;
+import org.nep.rpc.framework.core.server.neptune.NeptuneRpcService;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
 import org.nep.rpc.framework.registry.core.server.zookeeper.NeptuneZookeeperRegistry;
