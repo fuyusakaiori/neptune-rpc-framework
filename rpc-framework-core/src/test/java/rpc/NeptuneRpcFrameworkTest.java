@@ -173,8 +173,12 @@ public class NeptuneRpcFrameworkTest
     @DisplayName(value = "数组内容比较测试")
     public void arraysCompareTest(){
         Class<?>[] types1 = new Class<?>[]{int.class, String.class};
-        Class<?>[] types2 = new Class<?>[]{int.class, String.class};
-        System.out.println(Arrays.equals(types1, types2));
+        Class<?>[] types2 = new Class<?>[]{int.class, int.class};
+        Class<?>[] types3 = new Class<?>[]{int.class, Integer.class};
+        System.out.println(Integer.TYPE);
+        System.out.println(Arrays.equals(types2, types3));
+        System.out.println(Integer.class.getTypeName());
+        System.out.println(Integer.TYPE.getTypeName());
     }
 
 

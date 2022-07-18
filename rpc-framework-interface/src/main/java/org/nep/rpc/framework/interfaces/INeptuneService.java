@@ -5,7 +5,8 @@ import java.util.List;
 /**
  * <h3>测试使用</h3>
  */
-public interface IDataService {
+public interface INeptuneService
+{
 
     /**
      * <h3>发送消息</h3>

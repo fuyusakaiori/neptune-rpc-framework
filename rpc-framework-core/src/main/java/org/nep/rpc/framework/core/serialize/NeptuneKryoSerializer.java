@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.serializers.DefaultSerializers;
 import com.esotericsoftware.kryo.serializers.FieldSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,10 +30,14 @@ public class NeptuneKryoSerializer implements INeptuneSerializer {
         // 2. 添加注册器
         kryo.register(NeptuneRpcInvocation.class,
                 new FieldSerializer<NeptuneRpcInvocation>(kryo, NeptuneRpcInvocation.class));
+        kryo.register(NeptuneRpcResponse.class,
+                new FieldSerializer<NeptuneRpcResponse>(kryo, NeptuneRpcResponse.class));
         kryo.register(Object[].class,
                 new DefaultArraySerializers.ObjectArraySerializer(kryo, Object[].class));
-        kryo.register(Class.class, new DefaultSerializers.ClassSerializer());
-        kryo.register(Class[].class, new DefaultArraySerializers.ObjectArraySerializer(kryo, Class[].class));
+        kryo.register(Class.class,
+                new DefaultSerializers.ClassSerializer());
+        kryo.register(Class[].class,
+                new DefaultArraySerializers.ObjectArraySerializer(kryo, Class[].class));
         // 3. 设置对象引用
         kryo.setReferences(false);
         return kryo;

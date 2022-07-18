@@ -1,6 +1,5 @@
 package org.nep.rpc.framework.core.handler;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ArrayUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,10 +15,6 @@ import org.nep.rpc.framework.core.serialize.NeptuneSerializerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.nep.rpc.framework.core.common.constant.Common.PRIMITIVE_TO_WRAPPER;
 
 /**
  * <h3>Neptune RPC 服务器消息处理器</h3>
@@ -38,7 +33,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         // 1. 从解码器中获取到的消息转换成协议的形式
         NeptuneRpcProtocol protocol =  (NeptuneRpcProtocol) message;
         log.debug("message: {}", protocol);
-        // 2. TODO 后序需要改进 获取序列化算法
+        // 2. 获取序列化算法
         INeptuneSerializer serializer = NeptuneSerializerFactory.getSerializer(protocol.getSerializer());
         // 3. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
         NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
@@ -82,7 +77,8 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
             return false;
         if (method.getParameterCount() != invocation.getArgs().length)
             return false;
-        return !ArrayUtil.equals(invocation.getTypes(), method.getParameterTypes());
+        log.debug("invocation: {}, method: {}", Arrays.toString(invocation.getTypes()), Arrays.toString(method.getParameterTypes()));
+        return ArrayUtil.equals(invocation.getTypes(), method.getParameterTypes());
     }
 
     /**

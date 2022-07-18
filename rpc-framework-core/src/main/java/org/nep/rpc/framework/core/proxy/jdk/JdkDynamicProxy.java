@@ -1,27 +1,31 @@
 package org.nep.rpc.framework.core.proxy.jdk;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
-import org.nep.rpc.framework.core.neptune.NeptuneRpcService;
+import org.nep.rpc.framework.core.common.util.NeptuneUtil;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
-
-import static org.nep.rpc.framework.core.common.constant.Common.CALL_TIME_OUT;
 
 /**
  * <h3>JDK 动态代理</h3>
  */
 @Slf4j
 public class JdkDynamicProxy implements InvocationHandler {
+    // 超时时间
+    private static final int CALL_TIME_OUT = 10;
+
+    private static final Map<String, String> PRIMITIVE_MAP = new HashMap<>();
 
     // 代理的目标对象
     private final Class<?> clazz;

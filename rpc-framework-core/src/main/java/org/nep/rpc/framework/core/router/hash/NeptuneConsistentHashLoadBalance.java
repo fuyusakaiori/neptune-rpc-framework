@@ -1,10 +1,9 @@
 package org.nep.rpc.framework.core.router.hash;
 
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.core.common.hash.NeptuneRpcHashFunction;
-import org.nep.rpc.framework.core.common.util.SocketUtil;
-import org.nep.rpc.framework.core.router.invoker.NeptuneRpcHashInvoker;
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
+import org.nep.rpc.framework.core.common.hash.NeptuneRpcHashFunction;
+import org.nep.rpc.framework.core.common.util.NeptuneUtil;
 import org.nep.rpc.framework.core.router.AbstractNeptuneRpcLoadBalance;
 import org.nep.rpc.framework.core.router.invoker.NeptuneRpcPhysicalInvoker;
 import org.nep.rpc.framework.core.router.invoker.NeptuneRpcVirtualInvoker;
@@ -47,7 +46,7 @@ public class NeptuneConsistentHashLoadBalance extends AbstractNeptuneRpcLoadBala
             addInvoker(physicalInvoker, virtualInvokerCount);
         }
         // 3. 选择哈希环中的结点
-        long hash = hashFunction.hash(SocketUtil.getLocalHost());
+        long hash = hashFunction.hash(NeptuneUtil.getLocalHost());
         // 3.1 返回所有大于等于哈希值的键值对
         SortedMap<Long, NeptuneRpcVirtualInvoker> tailMap = ring.tailMap(hash);
         // TODO 3.2 判断哈希表是否为空

@@ -18,7 +18,7 @@ import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
-import org.nep.rpc.framework.interfaces.IDataService;
+import org.nep.rpc.framework.interfaces.INeptuneService;
 import org.nep.rpc.framework.registry.service.AbstractRegister;
 import org.nep.rpc.framework.registry.service.zookeeper.NeptuneZookeeperRegister;
 import org.nep.rpc.framework.registry.url.DefaultURL;
@@ -86,7 +86,7 @@ public class NeptuneRpcClient {
                     }
                 });
         // 注: 测试使用
-        subscribeService(IDataService.class);
+        subscribeService(INeptuneService.class);
         // 6. 初始化客户端和所有服务提供者的连接
         connectService();
         // 7. 开启异步线程发送数据

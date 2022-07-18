@@ -1,7 +1,10 @@
 package org.nep.rpc.framework.core.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -24,24 +27,11 @@ import org.nep.rpc.framework.registry.url.URL;
 
 import java.net.InetSocketAddress;
 
-import static org.nep.rpc.framework.core.common.constant.Common.*;
-
 /**
  * <h3>Neptune RPC 服务器</h3>
  */
 @Slf4j
 public class NeptuneRpcServer {
-
-    static {
-        PRIMITIVE_TO_WRAPPER.put("int", Integer.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("float", Float.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("double", Double.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("boolean", Boolean.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("byte", Byte.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("short", Short.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("long", Long.class.getName());
-        PRIMITIVE_TO_WRAPPER.put("char", Character.class.getName());
-    }
     // 负责处理连接事件的循环事件组
     private EventLoopGroup boss;
     // 负责处理其他事件的循环事件组

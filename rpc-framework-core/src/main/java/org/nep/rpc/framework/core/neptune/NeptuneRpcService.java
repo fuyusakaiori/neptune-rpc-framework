@@ -1,13 +1,14 @@
 package org.nep.rpc.framework.core.neptune;
 
 import lombok.extern.slf4j.Slf4j;
-import org.nep.rpc.framework.interfaces.IDataService;
+import org.nep.rpc.framework.interfaces.INeptuneService;
 
 import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-public class NeptuneRpcService implements IDataService {
+public class NeptuneRpcService implements INeptuneService
+{
 
     @Override
     public String send(String request) {
