@@ -13,5 +13,7 @@ public class Separator {
     public static final String LINKER = "-";
     public static final String DOT = ".";
 
+    public static final String WELL = "#";
+
 
 }

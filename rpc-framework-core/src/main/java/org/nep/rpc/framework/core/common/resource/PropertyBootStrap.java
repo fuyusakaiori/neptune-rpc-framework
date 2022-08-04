@@ -2,6 +2,7 @@ package org.nep.rpc.framework.core.common.resource;
 
 import cn.hutool.core.util.StrUtil;
 import io.netty.util.internal.StringUtil;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
@@ -18,6 +19,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -55,55 +57,67 @@ public class PropertyBootStrap {
     //========================================== 服务端配置 ==========================================
     private static final String SERVER_PORT = "neptune.server.port";
 
+    @Getter
+    private static NeptuneRpcServerConfig serverConfig;
+
+    @Getter
+    private static NeptuneRpcClientConfig clientConfig;
+
     /**
      * <h3>加载服务端配置</h3>
      */
     public static NeptuneRpcServerConfig loadServerConfiguration(){
-        NeptuneRpcServerConfig config = new NeptuneRpcServerConfig();
+        if (Objects.nonNull(serverConfig)){
+            return serverConfig;
+        }
+        serverConfig = new NeptuneRpcServerConfig();
         try {
             PropertiesLoader.loadConfiguration();
             // 1. 直接获取本机 IP 地址 InetAddress.getLocalHost().getHostAddress()
-            config.setAddress(ADDRESS);
-            log.info("[Neptune RPC Configuration] server config address: {}", config.getAddress());
+            serverConfig.setAddress(ADDRESS);
+            log.info("[Neptune RPC Configuration] server config address: {}", serverConfig.getAddress());
             // 2. 获取资源文件中配置端口号
-            config.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
-            log.info("[Neptune RPC Configuration] server config port: {}", config.getPort());
+            serverConfig.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
+            log.info("[Neptune RPC Configuration] server config port: {}", serverConfig.getPort());
             // 3. 获取资源文件中配置的服务名
-            config.setApplication(PropertiesLoader.getStringValue(APPLICATION_NAME));
-            log.info("[Neptune RPC Configuration] server config application: {}", config.getApplication());
+            serverConfig.setApplication(PropertiesLoader.getStringValue(APPLICATION_NAME));
+            log.info("[Neptune RPC Configuration] server config application: {}", serverConfig.getApplication());
             // 4. 获取资源文件中注册中心的相关配置
-            config.setConfig(loadNeptuneRpcRegisterConfiguration());
+            serverConfig.setConfig(loadNeptuneRpcRegisterConfiguration());
             // 5. 获取配置序列化算法
-            config.setSerializer(loadNeptuneRpcSerializer());
+            serverConfig.setSerializer(loadNeptuneRpcSerializer());
         } catch (Exception e) {
             throw new RuntimeException("[Neptune RPC Configuration]: 服务器端加载配置文件出现异常", e);
         }
-        return config;
+        return serverConfig;
     }
 
     /**
      * <h3>加载客户端配置</h3>
      */
     public static NeptuneRpcClientConfig loadClientConfiguration(){
+        if (Objects.nonNull(clientConfig)){
+            return clientConfig;
+        }
         try {
             PropertiesLoader.loadConfiguration();
         } catch (Exception e) {
             throw new RuntimeException("[Neptune RPC Configuration]: 客户端加载配置文件出现异常", e);
         }
-        NeptuneRpcClientConfig config = new NeptuneRpcClientConfig();
-        config.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
-        log.info("[Neptune RPC Configuration] client config port: {}", config.getPort());
-        config.setAddress(ADDRESS);
-        log.info("[Neptune RPC Configuration] client config port: {}", config.getAddress());
-        config.setApplication(PropertiesLoader.getStringValue(APPLICATION_NAME));
-        log.info("[Neptune RPC Configuration] client config application: {}", config.getApplication());
-        config.setProxy(PropertiesLoader.getStringValue(PROXY_TYPE));
-        log.info("[Neptune RPC Configuration] client config proxy: {}", config.getProxy());
-        config.setSerializer(loadNeptuneRpcSerializer());
-        config.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
-        config.setLoadBalanceStrategy(loadNeptuneRpcLoadBalance());
-        log.debug("config: {}", config);
-        return config;
+        clientConfig = new NeptuneRpcClientConfig();
+        clientConfig.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
+        log.info("[Neptune RPC Configuration] client config port: {}", clientConfig.getPort());
+        clientConfig.setAddress(ADDRESS);
+        log.info("[Neptune RPC Configuration] client config port: {}", clientConfig.getAddress());
+        clientConfig.setApplication(PropertiesLoader.getStringValue(APPLICATION_NAME));
+        log.info("[Neptune RPC Configuration] client config application: {}", clientConfig.getApplication());
+        clientConfig.setProxy(PropertiesLoader.getStringValue(PROXY_TYPE));
+        log.info("[Neptune RPC Configuration] client config proxy: {}", clientConfig.getProxy());
+        clientConfig.setSerializer(loadNeptuneRpcSerializer());
+        clientConfig.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
+        clientConfig.setLoadBalanceStrategy(loadNeptuneRpcLoadBalance());
+        log.debug("config: {}", clientConfig);
+        return clientConfig;
     }
 
     /**

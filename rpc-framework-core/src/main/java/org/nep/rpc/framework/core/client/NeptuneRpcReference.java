@@ -10,7 +10,7 @@ public class NeptuneRpcReference {
         this.proxyFactory = proxyFactory;
     }
 
-    public <T> T remoteCall(Class<T> clazz){
+    public <T> T getProxy(Class<T> clazz){
         return proxyFactory.getProxy(clazz);
     }
 }

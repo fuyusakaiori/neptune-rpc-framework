@@ -18,11 +18,10 @@ import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
-import org.nep.rpc.framework.core.server.neptune.NeptuneRpcService;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
 import org.nep.rpc.framework.registry.core.server.zookeeper.NeptuneZookeeperRegistry;
-import org.nep.rpc.framework.registry.url.DefaultURL;
+import org.nep.rpc.framework.registry.url.NeptuneDefaultURL;
 import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 import java.net.InetSocketAddress;
@@ -59,6 +58,8 @@ public class NeptuneRpcServer {
     public void startNeptune() {
         // 0. 初始化注册中心
         registry = new NeptuneZookeeperRegistry(config.getConfig());
+        // TODO 注: 硬编码添加过滤器
+
         // 1. 初始化服务器
         server = new ServerBootstrap();
         // 2. 初始化事件循环组
@@ -70,8 +71,6 @@ public class NeptuneRpcServer {
                 .option(ChannelOption.SO_SNDBUF, ServerConfig.SEND_BUFFER_SIZE) // 2.3 发送方缓冲区大小
                 .option(ChannelOption.SO_RCVBUF, ServerConfig.RECEIVE_BUFFER_SIZE) // 2.4 接收方缓冲区大小
                 .option(ChannelOption.SO_KEEPALIVE, true); // 2.5 如果超过两个小时没有数据发送, 那么就会发送探测报文
-        // TODO 注: 缓存对外提供的接口 硬编码, 用于测试使用
-        registryClass(new NeptuneRpcService());
         // 4. 服务注册
         registryServices();
         // 5. 启动服务器
@@ -108,12 +107,14 @@ public class NeptuneRpcServer {
             boss.shutdownGracefully();
             future.channel().close().sync();
             // TODO 对外提供的服务都应该下线
-            registry.cancel(getUrl(new Class[]{NeptuneRpcService.class}));
             future.channel().close();
         } catch (InterruptedException e) {
             log.error("[Neptune RPC Server]: 服务器关闭出现异常");
         }
         log.info("[Neptune RPC Server]: 服务器关闭");
+    }
+    public NeptuneRpcServerConfig getServerConfig(){
+        return this.config;
     }
 
     /**
@@ -121,7 +122,9 @@ public class NeptuneRpcServer {
      * <h3>2. 避免每次反射调用的时候都去查询</h3>
      * <h3>注: 这里目前主要用于测试使用</h3>
      */
-    private void registryClass(Object target){
+    public void registryClass(NeptuneServiceWrapper wrapper){
+        // 0. 获取目标服务
+        Object target = wrapper.getService();
         // 1. 服务提供者不会直接将实现类暴露出来, 而是通过接口的形式对外提供, 所以实现类必须实现接口, 才是对外提供的服务
         Class<?>[] interfaces = target.getClass().getInterfaces();
         if (interfaces.length == 0){
@@ -136,7 +139,8 @@ public class NeptuneRpcServer {
         // 3. 如果符合条件, 那么就将对外提供的接口名字和实现类对象放入缓存中
         NeptuneRpcServerCache.registerService(interfaces[0].getName(), target);
         // 4. 将对外提供的服务 (接口 / 类) 生成对应的 URL 后存储在本地缓存中
-        NeptuneRpcServerCache.registerServiceUrl(getUrl(interfaces));
+        NeptuneRpcServerCache.registerServiceUrl(getUrl(wrapper));
+        // TODO 限流和 token 之后再做
     }
 
     /**
@@ -161,8 +165,8 @@ public class NeptuneRpcServer {
     /**
      * <h3>生成 URL</h3>
      */
-    private NeptuneURL getUrl(Class<?>[] interfaces){
-        NeptuneURL url = new DefaultURL();
+    private NeptuneURL getUrl(NeptuneServiceWrapper wrapper){
+        NeptuneURL url = new NeptuneDefaultURL();
         // 1. 从配置中获取服务器端口号
         url.setPort(config.getPort());
         // 2. 从配置中获取服务器所在 IP 地址
@@ -170,7 +174,10 @@ public class NeptuneRpcServer {
         // 3. 从配置中获取服务器名称
         url.setApplicationName(config.getApplication());
         // 4. 从配置中获取服务器对外提供的服务
-        url.setServiceName(interfaces[0].getName());
+        url.setServiceName(wrapper.getService().getClass().getInterfaces()[0].getName());
+        // 5. 添加其他附加参数
+        url.getParams().put(NeptuneURL.group, wrapper.getGroup());
+        url.getParams().put(NeptuneURL.limit, wrapper.getLimit());
         return url;
     }
 

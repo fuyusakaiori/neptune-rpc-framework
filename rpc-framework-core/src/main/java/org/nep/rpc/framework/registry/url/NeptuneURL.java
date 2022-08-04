@@ -1,10 +1,15 @@
 package org.nep.rpc.framework.registry.url;
 
+import java.util.Map;
+
 /**
  * <h3>存储在注册中心结点的格式</h3>
  */
-public interface NeptuneURL
-{
+public interface NeptuneURL {
+
+    String group = "group";
+
+    String limit = "limit";
 
     String getApplicationName();
 
@@ -24,6 +29,8 @@ public interface NeptuneURL
     void setPort(int port);
 
     void setWeight(int weight);
+
+    Map<String, Object> getParams();
 
     String toProviderString();
 

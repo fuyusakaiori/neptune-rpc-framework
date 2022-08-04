@@ -15,5 +15,6 @@ public class NeptuneRpcInvoker
     private int fixedWeight;
     private int dynamicWeight;
     private String address;
+    private String group;
     private ChannelFuture future;
 }

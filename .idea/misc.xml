@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/socket-demo/pom.xml" />
         <option value="$PROJECT_DIR$/rpc-framework-core/pom.xml" />
+        <option value="$PROJECT_DIR$/rpc-framework-starter/pom.xml" />
         <option value="$PROJECT_DIR$/rpc-framework-interface/pom.xml" />
+        <option value="$PROJECT_DIR$/rpc-framework-provider/pom.xml" />
+        <option value="$PROJECT_DIR$/rpc-framework-comsumer/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK" />
-  <component name="SwUserDefinedSpecifications">
-    <option name="specTypeByUrl">
-      <map />
-    </option>
-  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
 </project>

@@ -7,9 +7,14 @@ import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import java.util.List;
 
 public class NeptuneTokenFilter extends NeptuneServerFilter {
+
+    private static final String TOKEN = "token";
+
     @Override
-    protected void filter(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation)
-    {
+    protected void filter(NeptuneRpcInvocation invocation) {
+        // 1. 获取 token
+        String token = String.valueOf(invocation.getAttachments().get(TOKEN));
+        // TODO 2. 获取服务的 token
 
     }
 }

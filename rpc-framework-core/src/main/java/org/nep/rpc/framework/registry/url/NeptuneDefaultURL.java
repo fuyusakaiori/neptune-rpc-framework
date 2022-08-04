@@ -5,13 +5,16 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.constant.Separator;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * <h3>默认的结点格式</h3>
  */
 @Slf4j
 @Data
 @ToString
-public class DefaultURL implements NeptuneURL {
+public class NeptuneDefaultURL implements NeptuneURL {
 
     /**
      * <h3>对外提供的接口或者类名称</h3>
@@ -30,8 +33,16 @@ public class DefaultURL implements NeptuneURL {
      * <h3>端口号</h3>
      */
     private int port;
-
+    /**
+     * <h3>权重</h3>
+     */
     private int weight;
+
+    /**
+     * <h3>附加参数</h3>
+     */
+    private final Map<String, Object> params = new ConcurrentHashMap<>();
+
 
     /**
      * <h3>服务提供者 URL 转为字符串 => 作为数据存储在结点中</h3>
@@ -61,7 +72,7 @@ public class DefaultURL implements NeptuneURL {
             return true;
         if (source == null || getClass() != source.getClass())
             return false;
-        DefaultURL url = (DefaultURL) source;
+        NeptuneDefaultURL url = (NeptuneDefaultURL) source;
         return port == url.port
                        && serviceName.equals(url.serviceName)
                        && applicationName.equals(url.applicationName)

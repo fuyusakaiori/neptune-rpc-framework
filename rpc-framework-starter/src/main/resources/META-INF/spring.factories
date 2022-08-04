@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.nep.rpc.framework.starter.config.INeptuneClientAutoConfiguration, \
+org.nep.rpc.framework.starter.config.INeptuneServerAutoConfiguration

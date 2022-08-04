@@ -11,15 +11,16 @@ public abstract class NeptuneServerFilter {
 
     private NeptuneServerFilter nextFilter;
 
-    public void setNextFilter(NeptuneServerFilter nextFilter) {
+    public NeptuneServerFilter setNextFilter(NeptuneServerFilter nextFilter) {
         this.nextFilter = nextFilter;
+        return this;
     }
 
-    public void execute(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation){
+    public void execute(NeptuneRpcInvocation invocation){
         if (nextFilter != null){
-            nextFilter.filter(invokers, invocation);
+            nextFilter.filter(invocation);
         }
     }
 
-    protected abstract void filter(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation);
+    protected abstract void filter(NeptuneRpcInvocation invocation);
 }

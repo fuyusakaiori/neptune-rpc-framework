@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * <h3>Neptune RPC Request</h3>
@@ -26,4 +27,6 @@ public class NeptuneRpcInvocation implements Serializable {
     private Object[] args;
     // 4. 参数类型
     private Class<?>[] types;
+    // 5. 附加参数
+    private Map<String, Object> attachments;
 }

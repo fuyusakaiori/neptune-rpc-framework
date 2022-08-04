@@ -21,11 +21,12 @@ import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 import org.nep.rpc.framework.interfaces.INeptuneService;
 import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
 import org.nep.rpc.framework.registry.core.server.zookeeper.NeptuneZookeeperRegistry;
-import org.nep.rpc.framework.registry.url.DefaultURL;
+import org.nep.rpc.framework.registry.url.NeptuneDefaultURL;
 import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 public class NeptuneRpcClient {
@@ -85,27 +86,39 @@ public class NeptuneRpcClient {
                         channel.pipeline().addLast(new NeptuneRpcClientHandler());
                     }
                 });
-        // 注: 测试使用
-        subscribeService(INeptuneService.class);
         // 6. 初始化客户端和所有服务提供者的连接
         connectService();
         // 7. 开启异步线程发送数据
         asyncSend();
         // 8. 初始化动态代理类
-        this.reference = new NeptuneRpcReference(new JdkDynamicProxyFactory());
+    }
+
+    public void closeNeptune(){
+        // TODO 考虑下客户端应该怎么优雅地关闭
+    }
+
+    public NeptuneRpcReference getReference(){
+        if (Objects.nonNull(reference)){
+            return this.reference;
+        }
+        return reference = new NeptuneRpcReference(new JdkDynamicProxyFactory());
+    }
+
+    public NeptuneRpcClientConfig getClientConfig(){
+        return config;
     }
 
     /**
      * <h3>订阅服务: 将自己添加到注册中心</h3>
      */
-    private void subscribeService(Class<?> service){
+    public void subscribeService(Class<?> service){
         NeptuneURL url = getUrl(service);
         registry.subscribe(url);
         log.debug("[Neptune RPC Client]: 客户端注册服务");
     }
 
     private NeptuneURL getUrl(Class<?> service){
-        NeptuneURL url = new DefaultURL();
+        NeptuneURL url = new NeptuneDefaultURL();
         url.setPort(config.getPort());
         // TODO 应该直接在配置文件中配置好, 暂时用于测试使用
         url.setServiceName(service.getName());
@@ -128,19 +141,12 @@ public class NeptuneRpcClient {
             registry.lookup(service)
                     .forEach(path -> NeptuneRpcConnectionHandler.connect(service, path));
             // 2.2. 监听建立连接的服务器
-            NeptuneURL defaultURL = new DefaultURL();
+            NeptuneURL defaultURL = new NeptuneDefaultURL();
             defaultURL.setServiceName(service);
             registry.afterSubscribe(defaultURL);
         }
     }
 
-
-    /**
-     * <h3>关闭客户端</h3>
-     */
-    public void closeNeptune(){
-        // TODO 考虑下客户端应该怎么优雅地关闭
-    }
 
     /**
      * <h3>异步线程: 负责客户端和所有服务提供者之间的消息通信</h3>
@@ -153,10 +159,6 @@ public class NeptuneRpcClient {
         // 3. 启动线程
         thread.start();
         log.debug("[Neptune RPC Client]: 客户端异步线程启动");
-    }
-
-    public NeptuneRpcReference getReference(){
-        return this.reference;
     }
 
     private final class AsyncSendTask implements Runnable{
