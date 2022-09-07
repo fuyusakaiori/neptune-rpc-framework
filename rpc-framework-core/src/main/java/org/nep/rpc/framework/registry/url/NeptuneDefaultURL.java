@@ -2,6 +2,7 @@ package org.nep.rpc.framework.registry.url;
 
 import lombok.Data;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.constant.Separator;
 
@@ -13,16 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Data
-@ToString
+@Accessors(chain = true)
 public class NeptuneDefaultURL implements NeptuneURL {
 
     /**
-     * <h3>对外提供的接口或者类名称</h3>
+     * <h3>提供的服务名称（接口名称）</h3>
      */
     private String serviceName;
 
     /**
-     * <h3>消费者或者提供者的服务名称</h3>
+     * <h3>提供服务的系统的名称（服务提供者的名字）</h3>
      */
     private String applicationName;
     /**
@@ -43,11 +44,10 @@ public class NeptuneDefaultURL implements NeptuneURL {
      */
     private final Map<String, Object> params = new ConcurrentHashMap<>();
 
-
     /**
-     * <h3>服务提供者 URL 转为字符串 => 作为数据存储在结点中</h3>
+     * <h3>消费者和提供者的路径对象转换为字符串数据</h3>
      */
-    public String toProviderString(){
+    public String toString(){
         return applicationName + Separator.SEMICOLON
                        + serviceName + Separator.SEMICOLON
                        + address + Separator.SEMICOLON
@@ -57,13 +57,11 @@ public class NeptuneDefaultURL implements NeptuneURL {
     }
 
     /**
-     * <h3>服务消费者 URL 转为字符串 => 作为数据存储在结点中</h3>
+     * <h3>消费者和提供者的路径对象转换为字符串路径</h3>
      */
-    public String toConsumerString(){
-        return applicationName + Separator.SEMICOLON
-                + serviceName + Separator.SEMICOLON
-                + port + Separator.SEMICOLON
-                + System.currentTimeMillis();
+    public String toString(String role){
+        return Separator.SLASH + serviceName + role + Separator.SLASH
+                       + applicationName + Separator.COLON + address + Separator.COLON + port;
     }
 
     @Override

@@ -11,5 +11,5 @@ public interface NeptuneServiceSubscribe {
 
     void subscribe(NeptuneURL url);
 
-    void unSubscribe(NeptuneURL url);
+    void unsubscribe(NeptuneURL url);
 }

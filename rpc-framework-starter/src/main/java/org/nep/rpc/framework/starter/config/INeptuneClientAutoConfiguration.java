@@ -66,7 +66,7 @@ public class INeptuneClientAutoConfiguration implements
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (needInitClient && Objects.nonNull(client)){
             log.info(" ================== [{}] Neptune RPC Client 启动成功 ================== ",
-                    client.getClientConfig().getApplication());
+                    client.getClientConfig().getApplicationName());
             client.startNeptune();
         }
     }

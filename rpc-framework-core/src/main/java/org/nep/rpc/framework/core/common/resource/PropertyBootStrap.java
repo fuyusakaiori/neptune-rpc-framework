@@ -1,10 +1,8 @@
 package org.nep.rpc.framework.core.common.resource;
 
 import cn.hutool.core.util.StrUtil;
-import io.netty.util.internal.StringUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.RetryPolicy;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
@@ -16,12 +14,7 @@ import org.nep.rpc.framework.core.router.hash.NeptuneConsistentHashLoadBalance;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
 
 
 /**
@@ -109,8 +102,8 @@ public class PropertyBootStrap {
         log.info("[Neptune RPC Configuration] client config port: {}", clientConfig.getPort());
         clientConfig.setAddress(ADDRESS);
         log.info("[Neptune RPC Configuration] client config port: {}", clientConfig.getAddress());
-        clientConfig.setApplication(PropertiesLoader.getStringValue(APPLICATION_NAME));
-        log.info("[Neptune RPC Configuration] client config application: {}", clientConfig.getApplication());
+        clientConfig.setApplicationName(PropertiesLoader.getStringValue(APPLICATION_NAME));
+        log.info("[Neptune RPC Configuration] client config application: {}", clientConfig.getApplicationName());
         clientConfig.setProxy(PropertiesLoader.getStringValue(PROXY_TYPE));
         log.info("[Neptune RPC Configuration] client config proxy: {}", clientConfig.getProxy());
         clientConfig.setSerializer(loadNeptuneRpcSerializer());

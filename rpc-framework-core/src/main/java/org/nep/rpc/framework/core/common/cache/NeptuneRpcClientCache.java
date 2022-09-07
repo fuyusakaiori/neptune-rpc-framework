@@ -10,10 +10,12 @@ import org.nep.rpc.framework.registry.url.NeptuneURL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * <h3>缓冲区</h3>
@@ -110,20 +112,31 @@ public class NeptuneRpcClientCache {
     /**
      * <h3>客户端存储订阅的服务（接口）的地址</h3>
      */
-    public static class Services {
+    public static class Service {
+
+        /**
+         * 集合存储的是客户端的服务订阅的路径不是服务注册的路径
+         * TODO 存在并发修改的问题
+         */
         private static final List<NeptuneURL> services = new ArrayList<>();
 
+        /**
+         * <h3>向缓存中添加已经订阅的路径</h3>
+         */
         public static void subscribe(NeptuneURL url){
-            if (url == null){
-                log.error("[Neptune RPC Client]: 客户端订阅的服务不存在");
+            if (Objects.isNull(url)){
+                log.error("[neptune rpc client cache]: client cache subscribe url is empty or null");
                 return;
             }
             services.add(url);
         }
 
-        public static void cancel(NeptuneURL url){
-            if (url == null){
-                log.error("[Neptune RPC Client]: 客户端取消订阅的服务不存在");
+        /**
+         * <h3>移除缓存中已经订阅的路径</h3>
+         */
+        public static void unsubscribe(NeptuneURL url){
+            if (Objects.isNull(url)){
+                log.error("[neptune rpc client cache]: client cache unsubscribe url is empty or null");
                 return;
             }
             services.remove(url);
@@ -141,8 +154,11 @@ public class NeptuneRpcClientCache {
             }
         }
 
-        public static List<NeptuneURL> getServices(){
-            return services;
+        public static List<String> getServices(){
+            // TODO: 如果订阅的服务是不同包下的具有相同名字的接口如何处理
+            return services.stream()
+                           .map(NeptuneURL::getServiceName)
+                           .collect(Collectors.toList());
         }
 
     }

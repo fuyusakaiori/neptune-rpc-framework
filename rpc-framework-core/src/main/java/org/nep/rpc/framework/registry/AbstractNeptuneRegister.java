@@ -26,17 +26,17 @@ public abstract class AbstractNeptuneRegister implements
 
     @Override
     public void subscribe(NeptuneURL url) {
-        NeptuneRpcClientCache.Services.subscribe(url);
+        NeptuneRpcClientCache.Service.subscribe(url);
     }
 
     @Override
-    public void unSubscribe(NeptuneURL url) {
-        NeptuneRpcClientCache.Services.cancel(url);
+    public void unsubscribe(NeptuneURL url) {
+        NeptuneRpcClientCache.Service.unsubscribe(url);
     }
 
-    public abstract void beforeSubscribe(NeptuneURL url);
+    public abstract void beforeSubscribe(String serviceName);
 
-    public abstract void afterSubscribe(NeptuneURL url);
+    public abstract void afterSubscribe(String serviceName);
 
     public abstract List<String> lookup(String serviceName);
 

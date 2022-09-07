@@ -1,126 +1,160 @@
 package org.nep.rpc.framework.registry.core.server.zookeeper;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.zookeeper.CreateMode;
+import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.constant.Separator;
 import org.nep.rpc.framework.registry.AbstractNeptuneRegister;
 import org.nep.rpc.framework.registry.core.server.zookeeper.client.NeptuneZookeeperClient;
 import org.nep.rpc.framework.registry.core.server.zookeeper.client.AbstractZookeeperClient;
+import org.nep.rpc.framework.registry.url.NeptuneDefaultURL;
 import org.nep.rpc.framework.registry.url.NeptuneURL;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <h3>Neptune RPC Register</h3>
  */
 @Slf4j
 public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
-    private final AbstractZookeeperClient zookeeperClient;
+
     // 消费者
     private static final String CONSUMER = "/consumer";
     // 提供者
     private static final String PROVIDER = "/provider";
+
+    private final AbstractZookeeperClient zookeeperClient;
 
     public NeptuneZookeeperRegistry(NeptuneRpcRegisterConfig config) {
         this.zookeeperClient = new NeptuneZookeeperClient(config);
     }
 
     /**
-     * <h3>注: 因为在创建客户端的时候就设置好了命名空间, 所以不需要判断根目录是否存在</h3>
+     * <h3>服务注册（服务上线）</h3>
      */
     @Override
     public void register(NeptuneURL url) {
-        // 1. 将原本的路径转换为字符串, 作为数据存储在结点中
-        String data = url.toProviderString();
-        // 2. 检查结点是否存在
-        String path = toProviderPath(url);
+        // 1. 路径对象转换为路径字符串
+        String path = url.toString(PROVIDER);
+        log.info("[neptune rpc zookeeper] provider path - {}", path);
+        // 2. 检查路径结点是否存在
         if (zookeeperClient.existNode(path)){
-            log.debug("[Neptune RPC Zookeeper]: Register 结点之前已经存在, 重新更新");
-            // 2.1 如果注册中心没有结点的话, 那么直接创建
+            // 2.1 如果结点已经存在, 那么就删除后重新更新 -> 结点的数据是带有时间戳的, 所以有必要重新更新
+            log.info("[neptune rpc zookeeper] provider path is already exist, update again");
+            // 2.2 删除结点
             zookeeperClient.deleteNode(path);
         }
-        // 2.2 如果注册中心已经存在结点了, 那么删除后重新创建; 因为 path 是不包含时间戳的, 但是 data 是由时间戳的, 同一个服务不同时间注册的 data 是不同的
-        zookeeperClient.createNodeWithData(path, data);
-        // 3. 存储在哈希表中
+        // 3. 创建服务提供者的结点: 采用临时结点注册
+        zookeeperClient.createNode(path, url.toString(), CreateMode.EPHEMERAL);
+        // 4. 存储在哈希表中
         super.register(url);
+        log.info("[neptune rpc zookeeper] provider register successfully");
     }
 
+    /**
+     * <h3>服务下线</h3>
+     */
     @Override
     public void cancel(NeptuneURL url) {
-        zookeeperClient.deleteNode(toProviderPath(url));
+        // 1. 删除结点
+        zookeeperClient.deleteNode(url.toString(PROVIDER));
+        // 2. 删除哈希表中的路径
         super.cancel(url);
+        log.info("[neptune rpc zookeeper] provider cancel successfully");
     }
 
+    /**
+     * <h3>服务订阅: 客户端注册结点到服务路径下</h3>
+     */
     @Override
     public void subscribe(NeptuneURL url) {
-        // 1. 将原本的路径转换为字符串, 作为数据存储在结点中
-        String data = url.toConsumerString();
-        String path = toConsumerPath(url);
+        // 1. 路径对象转换为路径字符串
+        String path = url.toString(CONSUMER);
+        log.info("[neptune rpc zookeeper] consumer path - {}", path);
         // 2. 检查结点是否存在
         if (zookeeperClient.existNode(path)){
-            log.debug("[Neptune RPC Zookeeper]: Subscribe 结点之前已经存在, 重新更新");
+            log.info("[neptune rpc zookeeper]: consumer path is already exist, update again");
             zookeeperClient.deleteNode(path);
         }
-        zookeeperClient.createNode(path, data, CreateMode.EPHEMERAL);
+        // 3. 创建服务订阅的结点: 采用临时结点
+        zookeeperClient.createNode(path, url.toString(), CreateMode.EPHEMERAL);
+        // 4. 服务订阅后添加到哈希表中: 哈希表中记录订阅的服务, 不是服务提供者
         super.subscribe(url);
     }
 
+    /**
+     * <h3>服务取消订阅</h3>
+     */
     @Override
-    public void unSubscribe(NeptuneURL url) {
-        zookeeperClient.deleteNode(toConsumerPath(url));
-        super.unSubscribe(url);
+    public void unsubscribe(NeptuneURL url) {
+        // 1. 删除消费者结点
+        zookeeperClient.deleteNode(url.toString(CONSUMER));
+        // 2. 移除订阅的路径
+        super.unsubscribe(url);
     }
 
     /**
-     * <h3>根据服务名找到所有提供这个服务的服务器</h3>
+     * <h3>查询提供服务的所有服务端</h3>
      */
     @Override
     public List<String> lookup(String serviceName) {
-        if (serviceName == null){
-            log.error("[Neptune RPC Zookeeper]: 服务名不可以为空");
-            return null;
+        // 1. 校验查询的服务路径是否为空
+        if (StrUtil.isEmpty(serviceName)){
+            log.error("[neptune rpc zookeeper]: lookup service is empty or null");
+            // 注: 不要直接返回空值, 否则会出现空指针异常
+            return Collections.emptyList();
         }
+        // 2. 拼接订阅的服务的路径
         String path = Separator.SLASH + serviceName + PROVIDER;
-        log.debug("path: {}", path);
+        // 3. 获取订阅的服务的路径下的所有子结点: 所有提供服务的服务端
         return zookeeperClient.getChildrenNode(path);
     }
 
+    /**
+     * <h3>服务订阅的前置处理: 钩子函数</h3>
+     */
     @Override
-    public void beforeSubscribe(NeptuneURL url) {
+    public void beforeSubscribe(String serviceName) {
+        log.info("[neptune rpc zookeeper]: before subscribe service start...");
 
+
+        log.info("[neptune rpc zookeeper]: before subscribe service end...");
     }
 
     /**
-     * <h3>订阅服务之后就需要监听这个服务, 防止发生变动</h3>
+     * <h3>服务订阅后的后置处理: 钩子函数</h3>
+     * <h3>监听订阅的结点</h3>
      */
     @Override
-    public void afterSubscribe(NeptuneURL url) {
-        String root = Separator.SLASH + url.getServiceName() + PROVIDER;
-        log.debug("path: {}", Separator.SLASH + url.getServiceName() + PROVIDER);
-        // 1. 监听服务提供者路径下所有的子结点
+    public void afterSubscribe(String serviceName) {
+        log.info("[neptune rpc zookeeper]: after subscribe service start...");
+        // 1. 拼接注册的服务的根路径
+        String root = Separator.SLASH + serviceName + PROVIDER;
+        // 2. 监听服务提供者路径下所有的子结点: 是否有结点新增、删除、更新
         zookeeperClient.addChildrenNodeWatcher(root);
-        // 2. 监听每个子结点数据变化, 主要就是监听权重
-        List<String> providers = lookup(url.getServiceName());
-        log.debug("providers: {}", providers);
+        // 3. 查询服务的所有提供者
+        List<String> providers = providers(serviceName);
+        // 4. 监听每个子结点的变化
         providers.forEach(path -> zookeeperClient.addNodeWatcher(root + Separator.SLASH + path));
+        log.info("[neptune rpc zookeeper]: after subscribe service end...");
     }
 
     /**
-     * <h3>把 URL 转换为服务提供者结点的名称</h3>
+     * <h3>缓存查询得到的对象是 NeptuneInvoker => 转换成对应的服务注册的路径</h3>
      */
-    private String toProviderPath(NeptuneURL url){
-        log.debug("url: {}", url);
-        return Separator.SLASH + url.getServiceName() + PROVIDER + Separator.SLASH
-                       + url.getAddress() + Separator.COLON + url.getPort();
+    private List<String> providers(String serviceName){
+        return NeptuneRpcClientCache.Connection.providers(serviceName).stream()
+                       .map(invoker -> new NeptuneDefaultURL()
+                                               .setPort(invoker.getPort())
+                                               .setAddress(invoker.getAddress())
+                                               .setWeight(invoker.getFixedWeight())
+                                               .setServiceName(serviceName)
+                                               .setApplicationName(invoker.getApplicationName()).toString(PROVIDER))
+                       .collect(Collectors.toList());
     }
 
-    /**
-     * <h3>把 URL 转换为服务消费者结点的名称</h3>
-     */
-    private String toConsumerPath(NeptuneURL url){
-        log.debug("url: {}", url);
-        return Separator.SLASH + url.getServiceName() + CONSUMER + Separator.SLASH
-                + url.getApplicationName() + Separator.COLON + url.getAddress() + Separator.COLON + url.getPort();
-    }
 }

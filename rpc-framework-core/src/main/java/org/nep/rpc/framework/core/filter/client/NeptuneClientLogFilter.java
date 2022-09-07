@@ -14,7 +14,7 @@ public class NeptuneClientLogFilter extends NeptuneClientFilter {
 
     @Override
     protected void filter(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation) {
-        invocation.getAttachments().put("c_app_name", PropertyBootStrap.getClientConfig().getApplication());
+        invocation.getAttachments().put("c_app_name", PropertyBootStrap.getClientConfig().getApplicationName());
         log.info(invocation.getAttachments().get("c_app_name") + "do invoke ---->" + invocation.getService());
     }
 }

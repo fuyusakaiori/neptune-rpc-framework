@@ -13,7 +13,7 @@ public class NeptuneRpcClientConfig {
     // 服务端端口号
     private Integer port;
     // 服务提供者的名称
-    private String application;
+    private String applicationName;
     // 客户端使用动态代理模式
     private String proxy;
     // 客户端采用序列化算法

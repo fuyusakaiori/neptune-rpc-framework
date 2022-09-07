@@ -32,9 +32,8 @@ public interface NeptuneURL {
 
     Map<String, Object> getParams();
 
-    String toProviderString();
+    String toString();
 
-    String toConsumerString();
-
+    String toString(String role);
 
 }
