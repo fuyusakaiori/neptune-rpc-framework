@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <h3>序列化工程</h3>
+ * <h3>序列化工厂</h3>
  */
 @Slf4j
 public class NeptuneSerializerFactory {

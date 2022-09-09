@@ -41,14 +41,7 @@ public class PropertyBootStrap {
     //========================================== 客户端配置 ==========================================
     private static final String PROXY_TYPE = "neptune.client.proxy.type";
     private static final String BALANCE_POLICY = "neptune.client.balance.policy";
-    private static final String BALANCE_POLICY_PREFIX = "org.nep.rpc.framework.core.router";
-    private static final String BALANCE_POLICY_TYPE_RANDOM = "random";
-    private static final String BALANCE_POLICY_TYPE_ROUND = "round";
-    private static final String BALANCE_POLICY_TYPE_HASH = "hash";
 
-    private static final String CONSISTENT_HASH_VIRTUAL = "neptune.client.balance.policy.virtual";
-
-    private static final String CONSISTENT_HASH_FUNCTION = "neptune.client.balance.policy.hash";
 
     //========================================== 服务端配置 ==========================================
     private static final String SERVER_PORT = "neptune.server.port";
