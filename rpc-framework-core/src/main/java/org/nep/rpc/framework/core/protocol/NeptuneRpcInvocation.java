@@ -19,10 +19,10 @@ public class NeptuneRpcInvocation implements Serializable {
     private static final long serialVersionUID = 1905122041950251207L;
     // 0. 请求序列号
     private String uuid;
-    // 1. 调用的目标方法
-    private String method;
-    // 2. 调用的目标类
-    private String service;
+    // 1. 调用的目标接口
+    private String serviceName;
+    // 2. 调用的目标方法
+    private String methodName;
     // 3. 方法携带的参数
     private Object[] args;
     // 4. 参数类型

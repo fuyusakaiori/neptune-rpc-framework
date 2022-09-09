@@ -172,21 +172,29 @@ public class NeptuneRpcClient {
         @Override
         public void run() {
             while (true){
-                // 1. 从阻塞队列中获取消息
+                // 1. 从消息队列中获取调用请求
                 NeptuneRpcInvocation invocation = NeptuneRpcClientCache.MessageQueue.receive();
-                log.debug("[Neptune RPC Client]: 异步线程获取到消息 {}", invocation);
-                // 2. 序列化
+                // 2. 校验调用请求是否为空
+                if (Objects.isNull(invocation)){
+                    log.error("[neptune rpc client async send task]: receive invocation is null");
+                    continue;
+                }
+                log.info("[neptune rpc client async send task]: receive invocation {}", invocation);
+                // 2. 调用序列化算法将调用请求转换为二进制的数据
                 NeptuneRpcProtocol message =
                         new NeptuneRpcProtocol(serializer.serialize(invocation));
-                // 3. 获取服务提供者
-                NeptuneRpcInvoker wrapper =
-                        NeptuneRpcConnectionHandler.channelWrapper(invocation.getService());
-                if (wrapper != null){
-                    log.debug("[Neptune RPC Client]: 客户端向服务端发送消息 [IP地址: {}, 端口号: {}]",
-                            wrapper.getAddress(), wrapper.getPort());
-                    // 4. 发送消息给对应的服务端
-                    wrapper.getFuture().channel().writeAndFlush(message);
+                // 3. 获取一个提供服务的服务提供者然后发送消息
+                NeptuneRpcInvoker invoker =
+                        NeptuneRpcConnectionHandler.select(invocation);
+                // 4. 检查是否有可用的服务提供者
+                if (Objects.isNull(invoker)){
+                    log.error("[neptune rpc client async send task]: select invoker is null");
+                    continue;
                 }
+                log.info("[neptune rpc client async send task]: send invocation - ip: {}, port: {}, serviceName: {}, methodName: {}",
+                        invoker.getAddress(), invoker.getPort(), invocation.getServiceName(), invocation.getMethodName());
+                // 4. 发送消息给对应的服务端
+                invoker.getFuture().channel().writeAndFlush(message);
             }
         }
     }

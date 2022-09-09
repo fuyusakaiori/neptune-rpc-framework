@@ -1,11 +1,8 @@
 package org.nep.rpc.framework.core.proxy.jdk;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
-import org.nep.rpc.framework.core.common.util.NeptuneUtil;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
@@ -43,8 +40,8 @@ public class JdkDynamicProxy implements InvocationHandler {
         // 1. 填充发送的请求
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
         invocation.setArgs(args);
-        invocation.setMethod(method.getName());
-        invocation.setService(clazz.getName());
+        invocation.setMethodName(method.getName());
+        invocation.setServiceName(clazz.getName());
         invocation.setTypes(method.getParameterTypes());
         invocation.setUuid(RandomUtil.randomNumbers(6));
         // 2. 把即将要发送的请求的序列号填充到哈希表中, 确保接收的时候是对应的

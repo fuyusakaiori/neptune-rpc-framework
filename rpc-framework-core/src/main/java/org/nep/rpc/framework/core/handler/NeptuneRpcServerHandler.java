@@ -39,7 +39,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
         log.debug("invocation: {}", invocation);
         // 4. 从服务端容器中取出缓存的接口
-        Object target = NeptuneRpcServerCache.getService(invocation.getService());
+        Object target = NeptuneRpcServerCache.getService(invocation.getServiceName());
         // 5. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
         if (target == null){
             response.setUuid(invocation.getUuid());
@@ -73,7 +73,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
      * <h3>避免调用重载方法: 暂时的解决方案</h3>
      */
     public boolean checkMethod(Method method, NeptuneRpcInvocation invocation){
-        if (!method.getName().equals(invocation.getMethod()))
+        if (!method.getName().equals(invocation.getMethodName()))
             return false;
         if (method.getParameterCount() != invocation.getArgs().length)
             return false;

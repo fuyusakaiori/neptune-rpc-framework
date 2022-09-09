@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Data
-@Accessors(chain = true)
 public class NeptuneDefaultURL implements NeptuneURL {
 
     /**

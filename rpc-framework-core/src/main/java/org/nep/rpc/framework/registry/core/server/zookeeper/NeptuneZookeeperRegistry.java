@@ -147,14 +147,15 @@ public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
      * <h3>缓存查询得到的对象是 NeptuneInvoker => 转换成对应的服务注册的路径</h3>
      */
     private List<String> providers(String serviceName){
-        return NeptuneRpcClientCache.Connection.providers(serviceName).stream()
-                       .map(invoker -> new NeptuneDefaultURL()
-                                               .setPort(invoker.getPort())
-                                               .setAddress(invoker.getAddress())
-                                               .setWeight(invoker.getFixedWeight())
-                                               .setServiceName(serviceName)
-                                               .setApplicationName(invoker.getApplicationName()).toString(PROVIDER))
-                       .collect(Collectors.toList());
+        return NeptuneRpcClientCache.Connection.providers(serviceName).stream().map(invoker -> {
+            NeptuneDefaultURL url = new NeptuneDefaultURL();
+            url.setApplicationName(invoker.getApplicationName());
+            url.setAddress(invoker.getAddress());
+            url.setPort(invoker.getPort());
+            url.setServiceName(invoker.getServiceName());
+            url.setWeight(invoker.getFixedWeight());
+            return url.toString(PROVIDER);
+        }).collect(Collectors.toList());
     }
 
 }

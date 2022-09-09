@@ -7,10 +7,13 @@ import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.common.constant.Separator;
-import org.nep.rpc.framework.core.common.hash.NeptuneRpcHashFunction;
-import org.nep.rpc.framework.core.common.hash.NeptuneRpcMd5Function;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 import org.nep.rpc.framework.core.router.hash.NeptuneConsistentHashLoadBalance;
+import org.nep.rpc.framework.core.router.random.NeptuneSimpleRandomLoadBalance;
+import org.nep.rpc.framework.core.router.random.NeptuneWeightRandomLoadBalance;
+import org.nep.rpc.framework.core.router.round.NeptuneSimpleRoundRobinLoadBalance;
+import org.nep.rpc.framework.core.router.round.NeptuneSmoothRoundRobinLoadBalance;
+import org.nep.rpc.framework.core.router.round.NeptuneWeightRoundRobinLoadBalance;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 
 import java.lang.reflect.Constructor;
@@ -146,20 +149,24 @@ public class PropertyBootStrap {
      */
     private static INeptuneSerializer loadNeptuneRpcSerializer() {
         INeptuneSerializer serializer = null;
+        // 1. 获取采用的序列化算法名称
         String serializeName = PropertiesLoader.getStringValue(SERIALIZE_TYPE);
-        if (StrUtil.isEmpty(serializeName))
-            throw new RuntimeException("[Neptune RPC Configuration]: 加载序列化算法出现错误");
-        log.info("[Neptune RPC Configuration] config serializer: {}", serializeName);
+        // 2. 检查序列化算法名称是否为空
+        if (StrUtil.isEmpty(serializeName)) {
+            throw new RuntimeException("[neptune rpc configuration]: load configuration serializer name is null");
+        }
+        log.info("[neptune rpc configuration] load configuration serializer name is - {}", serializeName);
+        // 3. 获取类加载器
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
         try {
             if (!serializeName.contains(SERIALIZE_PREFIX)){
                 serializeName = SERIALIZE_PREFIX + Separator.DOT + serializeName;
             }
+            // 4. 反射加载
             Class<?> clazz = classLoader.loadClass(serializeName);
             serializer = (INeptuneSerializer) clazz.getConstructor().newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("[Neptune RPC Configuration]: 加载序列化算法出现错误");
+            throw new RuntimeException("[neptune rpc configuration]: load configuration serializer occurred error");
         }
         return serializer;
     }
@@ -172,44 +179,27 @@ public class PropertyBootStrap {
         // 1. 获取配置的负载均衡策略的全限定名
         String strategyName = PropertiesLoader.getStringValue(BALANCE_POLICY);
         if (StrUtil.isEmpty(strategyName))
-            throw new RuntimeException("[Neptune RPC Configuration]: 加载负载均衡策略出现异常");
-        log.info("[Neptune RPC Configuration] config strategy: {}", strategyName);
-        // 2. 获取类加载器
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            throw new RuntimeException("[neptune rpc configuration]: load configuration strategy name is null");
+        log.info("[neptune rpc configuration] load configuration strategy name - {}", strategyName);
+        // 2. 直接根据加载的策略名称创建相应的对象: 反射感觉不是特别好
         try {
-            if (!strategyName.contains(BALANCE_POLICY_PREFIX)){
-                if (strategyName.contains("Random")){
-                    strategyName = BALANCE_POLICY_PREFIX + Separator.DOT
-                                           + BALANCE_POLICY_TYPE_RANDOM + Separator.DOT
-                                           + strategyName;
-                }else if (strategyName.contains("Round")){
-                    strategyName = BALANCE_POLICY_PREFIX + Separator.DOT
-                                           + BALANCE_POLICY_TYPE_ROUND + Separator.DOT
-                                           + strategyName;
-                }else{
-                    strategyName = BALANCE_POLICY_PREFIX + Separator.DOT
-                                           + BALANCE_POLICY_TYPE_HASH + Separator.DOT
-                                           + strategyName;
-                }
-            }
-            // 3. 加载负载均衡策略的对象
-            Class<?> clazz = classLoader.loadClass(strategyName);
-            // 注: 如果选用分布式哈希作为负载均衡策略, 那么就需要初始化参数
-            if (NeptuneConsistentHashLoadBalance.class.equals(clazz)){
-                Constructor<?> constructor = clazz.getConstructor(NeptuneRpcHashFunction.class, int.class);
-                // 注: 这里直接写死, 无论配置任何哈希函数
-                strategy = (INeptuneRpcLoadBalance) constructor.newInstance(new NeptuneRpcMd5Function(),
-                        PropertiesLoader.getIntegerValue(CONSISTENT_HASH_VIRTUAL));
-            }else{
-                // 4. 获取策略的空参构造器
-                Constructor<?> constructor = clazz.getConstructor();
-                // 5. 构建实例
-                strategy =  (INeptuneRpcLoadBalance) constructor.newInstance();
+            switch (strategyName) {
+                case INeptuneRpcLoadBalance.consistentHash:
+                    return new NeptuneConsistentHashLoadBalance();
+                case INeptuneRpcLoadBalance.randomSimple:
+                    return new NeptuneSimpleRandomLoadBalance();
+                case INeptuneRpcLoadBalance.randomWeight:
+                    return new NeptuneSimpleRoundRobinLoadBalance();
+                case INeptuneRpcLoadBalance.robinSimple:
+                    return new NeptuneWeightRandomLoadBalance();
+                case INeptuneRpcLoadBalance.robinWeight:
+                    return new NeptuneWeightRoundRobinLoadBalance();
+                default:
+                    return new NeptuneSmoothRoundRobinLoadBalance();
             }
         } catch (Exception e) {
-            throw new RuntimeException("[Neptune RPC Configuration]: 加载负载均衡策略出现异常");
+            throw new RuntimeException("[neptune rpc configuration]: load configuration strategy occurred error");
         }
-        return strategy;
     }
 
 

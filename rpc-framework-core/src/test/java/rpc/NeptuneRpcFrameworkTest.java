@@ -36,8 +36,8 @@ public class NeptuneRpcFrameworkTest
     public void messageQueueTest() throws InterruptedException {
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
         invocation.setArgs(null);
-        invocation.setMethod(null);
-        invocation.setService(null);
+        invocation.setMethodName(null);
+        invocation.setServiceName(null);
         invocation.setUuid(RandomUtil.randomNumbers(6));
     }
 
@@ -139,8 +139,8 @@ public class NeptuneRpcFrameworkTest
         invocation.setUuid(String.valueOf(RandomUtil.randomInt(6)));
         invocation.setTypes(new Class[]{String.class, Integer.class});
         invocation.setArgs(new Object[]{"message"});
-        invocation.setService("INeptuneService.class");
-        invocation.setMethod("send");
+        invocation.setServiceName("INeptuneService.class");
+        invocation.setMethodName("send");
         INeptuneSerializer jsonSerializer = NeptuneSerializerFactory.getSerializer(
                 NeptuneSerializerType.SERIALIZER_GSON.getCode());
         System.out.println(jsonSerializer.deserialize(jsonSerializer.serialize(invocation), NeptuneRpcInvocation.class));
@@ -175,6 +175,13 @@ public class NeptuneRpcFrameworkTest
         System.out.println(Arrays.equals(types2, types3));
         System.out.println(Integer.class.getTypeName());
         System.out.println(Integer.TYPE.getTypeName());
+    }
+
+    @Test
+    public void hashCodeTest(){
+        Set<Integer> first = new HashSet<>(Arrays.asList(1, 2, 3, 4));
+        Set<Integer> second = new HashSet<>(Arrays.asList(2, 3, 5));
+        System.out.println(CollectionUtil.disjunction(first, second));
     }
 
 

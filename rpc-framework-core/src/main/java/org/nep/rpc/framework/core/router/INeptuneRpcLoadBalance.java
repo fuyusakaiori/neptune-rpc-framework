@@ -1,6 +1,7 @@
 package org.nep.rpc.framework.core.router;
 
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 
 import java.util.List;
 
@@ -23,10 +24,22 @@ import java.util.List;
  */
 public interface INeptuneRpcLoadBalance {
 
+    String consistentHash = "consistent.hash";
+
+    String randomSimple = "random.simple";
+
+    String randomWeight = "random.weight";
+
+    String robinSimple = "robin.simple";
+
+    String robinWeight = "robin.weight";
+
+    String robinSmooth = "robin.smooth";
+
     /**
      * <h3>负载均衡</h3>
      * @param invokers 提供服务的所有服务端
      */
-    NeptuneRpcInvoker select(List<NeptuneRpcInvoker> invokers);
+    NeptuneRpcInvoker select(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation);
 
 }

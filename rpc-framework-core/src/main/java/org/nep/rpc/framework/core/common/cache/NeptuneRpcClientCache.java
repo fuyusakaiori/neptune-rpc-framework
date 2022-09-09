@@ -168,20 +168,20 @@ public class NeptuneRpcClientCache {
      */
     public static class Connection{
         // 注: 每个服务都会有多个应用提供, 这里的集合就是客户端和提供服务的应用建立的所有连接
-        private static final Map<String, List<NeptuneRpcInvoker>> CONNECTION
+        private static final Map<String, List<NeptuneRpcInvoker>> connections
                 = new ConcurrentHashMap<>();
         public static void connect(String service, NeptuneRpcInvoker wrapper){
             // 1. 查询该服务是否已经有连接集合, 如果没有创建一个
             List<NeptuneRpcInvoker> connections
-                    = CONNECTION.getOrDefault(service, new ArrayList<>());
+                    = Connection.connections.getOrDefault(service, new ArrayList<>());
             // 2. 添加新的连接
             connections.add(wrapper);
             // 3. 更新连接集合
-            CONNECTION.put(service, connections);
+            Connection.connections.put(service, connections);
         }
 
         public static NeptuneRpcInvoker disconnect(String service, String path){
-            List<NeptuneRpcInvoker> connections = CONNECTION.get(service);
+            List<NeptuneRpcInvoker> connections = Connection.connections.get(service);
             if (CollectionUtil.isNotEmpty(connections)){
                 for (int index = 0; index < connections.size(); index++) {
                     NeptuneRpcInvoker wrapper = connections.get(index);
@@ -193,17 +193,18 @@ public class NeptuneRpcClientCache {
             return null;
         }
 
-        public static List<NeptuneRpcInvoker> providers(String service){
-            return CONNECTION.getOrDefault(service, new ArrayList<>());
+        public static List<NeptuneRpcInvoker> providers(String serviceName){
+            // TODO 如果仅通过服务名确定, 那么有可能服务端没有提供需要的方法, 那么就无法反射执行, 这种情况感觉比较极端, 暂时不考虑
+            return connections.getOrDefault(serviceName, new ArrayList<>());
         }
 
-        public static boolean isConnect(String service, String path){
+        public static boolean isConnect(String serviceName, String path){
             // 1. 获取所有的服务对应的连接
-            List<NeptuneRpcInvoker> connections = CONNECTION.getOrDefault(service, new ArrayList<>());
-            // 2. 如果连接为空, 那么证明这个服务的提供者都还没有建立连接
+            List<NeptuneRpcInvoker> connections = Connection.connections.getOrDefault(serviceName, new ArrayList<>());
+            // 2. 如果连接集合为空, 那么就认为该服务还没有服务端提供, 可以建立连接
             if (CollectionUtil.isEmpty(connections))
                 return false;
-            // 3. 如果不为空, 那么就需要判断这个连接是否重复
+            // 3. 如果连接集合不为空, 那么就循环判断传入的服务端是否已经建立过连接
             for (NeptuneRpcInvoker connection : connections) {
                 if (path.equals(connection.getAddress() + Separator.COLON + connection.getPort()))
                     return true;

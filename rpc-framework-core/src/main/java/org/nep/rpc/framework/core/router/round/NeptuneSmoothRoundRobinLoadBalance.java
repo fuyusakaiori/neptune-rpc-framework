@@ -1,6 +1,7 @@
 package org.nep.rpc.framework.core.router.round;
 
 import org.nep.rpc.framework.core.client.NeptuneRpcInvoker;
+import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.router.AbstractNeptuneRpcLoadBalance;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 public class NeptuneSmoothRoundRobinLoadBalance extends AbstractNeptuneRpcLoadBalance {
 
     @Override
-    public NeptuneRpcInvoker doSelect(List<NeptuneRpcInvoker> invokers) {
+    public NeptuneRpcInvoker doSelect(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation) {
         // 1. 计算服务提供者的总动态权重
         int weightSum = invokers.stream()
                                 .mapToInt(NeptuneRpcInvoker::getFixedWeight)
