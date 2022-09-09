@@ -11,7 +11,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.data.Stat;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.registry.core.server.zookeeper.listener.NodeChangeListener;
-import org.nep.rpc.framework.registry.core.server.zookeeper.listener.TreeNodeListener;
 import org.nep.rpc.framework.registry.core.server.zookeeper.listener.ChildrenNodeListener;
 
 import java.nio.charset.StandardCharsets;
@@ -222,15 +221,6 @@ public class NeptuneZookeeperClient extends AbstractZookeeperClient {
         curatorCache.listenable().addListener(listener);
         curatorCache.start();
         // TODO 4. 不要关闭监听器, 否则启动之后就会立刻关闭, 之后考虑下如何关闭监听器
-    }
-
-    @Override
-    public void addTreeNodeWatcher(String path) {
-        CuratorCache curatorCache = CuratorCache.builder(zookeeperClient, path).build();
-        CuratorCacheListener listener = CuratorCacheListener.builder()
-                                                .forTreeCache(zookeeperClient, new TreeNodeListener()).build();
-        curatorCache.listenable().addListener(listener);
-        curatorCache.start();
     }
 
     @Override

@@ -20,16 +20,16 @@ public class ChildrenNodeListener implements PathChildrenCacheListener {
     public void childEvent(CuratorFramework client, PathChildrenCacheEvent event) throws Exception {
         // 1. 获取事件类型
         PathChildrenCacheEvent.Type type = event.getType();
-        log.debug("[neptune rpc zookeeper watcher]: watcher event type - {}", type);
+        log.info("[neptune rpc zookeeper watcher children listener]: watcher event type - {}", type);
         // 2. 如果是连接初始化事件, 就直接返回不进行任何处理
         if (PathChildrenCacheEvent.Type.INITIALIZED.equals(type)){
-            log.debug("[neptune rpc zookeeper watcher]: watcher event type is initialized, don't handle");
+            log.warn("[neptune rpc zookeeper watcher]: watcher event type is initialized, don't handle");
             return;
         }
         // 2. 获取发生事件的结点的路径和数据
         String path = event.getData().getPath();
         String data = new String(event.getData().getData());
-        log.debug("[neptune rpc zookeeper watcher]: watcher node path - {}, node data - {}", path, data);
+        log.info("[neptune rpc zookeeper watcher children listener]: watcher node path - {}, node data - {}", path, data);
         // 3. 分割路径获取对应的服务和结点
         String[] split = path.split("/");
         String serviceName = split[serviceNameIndex];
@@ -46,7 +46,7 @@ public class ChildrenNodeListener implements PathChildrenCacheListener {
             // 7. 如果发生的是结点删除事件, 那么就调用删除事件处理器
             handleChildRemoveEvent(serviceName, nodeName);
         }else{
-            log.info("[neptune rpc zookeeper watcher]: watcher other event type, don't handle");
+            log.info("[neptune rpc zookeeper watcher children listener]: watcher other event type, don't handle");
         }
     }
 
@@ -54,10 +54,10 @@ public class ChildrenNodeListener implements PathChildrenCacheListener {
      * <h3>处理子结点新增事件: 服务发现</h3>
      */
     private void handleChildAddEvent(String serviceName, String nodeName){
-        log.info("[neptune rpc zookeeper watcher]: watcher add event handle start");
+        log.info("[neptune rpc zookeeper watcher children listener]: watcher add event handle start");
         NeptuneRpcConnectionHandler.connect(serviceName, nodeName);
         // 注: 新增的子结点不需要去监听, 只需要通过当前这个父结点就可以监听到
-        log.info("[neptune rpc zookeeper watcher]: watcher add event handle successfully");
+        log.info("[neptune rpc zookeeper watcher children listener]: watcher add event handle successfully");
     }
 
     /**
@@ -71,8 +71,8 @@ public class ChildrenNodeListener implements PathChildrenCacheListener {
      * <h3>处理结点删除事件: 服务下线</h3>
      */
     private void handleChildRemoveEvent(String serviceName, String nodeName){
-        log.info("[neptune rpc zookeeper watcher]: watcher remove event handle start");
+        log.info("[neptune rpc zookeeper watcher children listener]: watcher remove event handle start");
         NeptuneRpcConnectionHandler.disconnect(serviceName, nodeName);
-        log.info("[neptune rpc zookeeper watcher]: watcher remove event handle successfully");
+        log.info("[neptune rpc zookeeper watcher children listener]: watcher remove event handle successfully");
     }
 }

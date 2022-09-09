@@ -32,7 +32,7 @@ public abstract class AbstractZookeeperClient implements NeptuneRegistryClient {
     private String namespace;
     public AbstractZookeeperClient(NeptuneRpcRegisterConfig config) {
         if (config == null)
-            throw new RuntimeException("[Neptune RPC Server]: 注册中心配置文件为空");
+            throw new RuntimeException("[neptune rpc zookeeper client]: zookeeper configuration is null");
         this.connectString = config.getAddress();
         this.connectTime = config.getConnectTime();
         this.sessionTime = config.getSessionTime();
@@ -124,7 +124,5 @@ public abstract class AbstractZookeeperClient implements NeptuneRegistryClient {
     //====================================== 监听结点相关方法 ======================================
 
     public abstract void addNodeWatcher(String path);
-
-    public abstract void addTreeNodeWatcher(String path);
 
 }
