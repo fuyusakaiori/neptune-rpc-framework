@@ -55,6 +55,7 @@ public class PropertyBootStrap {
      */
     public static NeptuneRpcServerConfig loadServerConfiguration(){
         if (Objects.nonNull(serverConfig)){
+            log.warn("[neptune rpc configuration]: server configuration already has loaded");
             return serverConfig;
         }
         serverConfig = new NeptuneRpcServerConfig();
@@ -62,19 +63,25 @@ public class PropertyBootStrap {
             PropertiesLoader.loadConfiguration();
             // 1. 直接获取本机 IP 地址 InetAddress.getLocalHost().getHostAddress()
             serverConfig.setAddress(ADDRESS);
-            log.info("[Neptune RPC Configuration] server config address: {}", serverConfig.getAddress());
+            log.info("[neptune rpc configuration] server configuration loading address: {}", serverConfig.getAddress());
+
             // 2. 获取资源文件中配置端口号
             serverConfig.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
-            log.info("[Neptune RPC Configuration] server config port: {}", serverConfig.getPort());
+            log.info("[neptune rpc configuration] server configuration loading port: {}", serverConfig.getPort());
+
             // 3. 获取资源文件中配置的服务名
             serverConfig.setApplication(PropertiesLoader.getStringValue(APPLICATION_NAME));
-            log.info("[Neptune RPC Configuration] server config application: {}", serverConfig.getApplication());
+            log.info("[neptune rpc configuration] server configuration loading application: {}", serverConfig.getApplication());
+
             // 4. 获取资源文件中注册中心的相关配置
             serverConfig.setConfig(loadNeptuneRpcRegisterConfiguration());
+            log.info("[neptune rpc configuration] server configuration loading register");
+
             // 5. 获取配置序列化算法
             serverConfig.setSerializer(loadNeptuneRpcSerializer());
+            log.info("[neptune rpc configuration] server configuration loading serializer");
         } catch (Exception e) {
-            throw new RuntimeException("[Neptune RPC Configuration]: 服务器端加载配置文件出现异常", e);
+            throw new RuntimeException("[neptune rpc configuration]: server configuration loading occurred error", e);
         }
         return serverConfig;
     }
@@ -84,26 +91,38 @@ public class PropertyBootStrap {
      */
     public static NeptuneRpcClientConfig loadClientConfiguration(){
         if (Objects.nonNull(clientConfig)){
+            log.warn("[neptune rpc configuration]: client configuration already has loaded");
             return clientConfig;
         }
         try {
             PropertiesLoader.loadConfiguration();
+            clientConfig = new NeptuneRpcClientConfig();
+
+            clientConfig.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
+            log.info("[neptune rpc configuration] client configuration loading port: {}", clientConfig.getPort());
+
+            clientConfig.setAddress(ADDRESS);
+            log.info("[neptune rpc configuration] client configuration loading address: {}", clientConfig.getAddress());
+
+            clientConfig.setApplicationName(PropertiesLoader.getStringValue(APPLICATION_NAME));
+            log.info("[neptune rpc configuration] client configuration loading application: {}", clientConfig.getApplicationName());
+
+            clientConfig.setProxy(PropertiesLoader.getStringValue(PROXY_TYPE));
+            log.info("[neptune rpc configuration] client configuration loading proxy: {}", clientConfig.getProxy());
+
+            clientConfig.setSerializer(loadNeptuneRpcSerializer());
+            log.info("[neptune rpc configuration] client configuration loading serializer");
+
+            clientConfig.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
+            log.info("[neptune rpc configuration] client configuration loading register");
+
+            clientConfig.setLoadBalanceStrategy(loadNeptuneRpcLoadBalance());
+            log.info("[neptune rpc configuration] client configuration loading load balance");
+
         } catch (Exception e) {
-            throw new RuntimeException("[Neptune RPC Configuration]: 客户端加载配置文件出现异常", e);
+            throw new RuntimeException("[neptune rpc configuration]: client configuration loading occurred error", e);
         }
-        clientConfig = new NeptuneRpcClientConfig();
-        clientConfig.setPort(PropertiesLoader.getIntegerValue(SERVER_PORT));
-        log.info("[Neptune RPC Configuration] client config port: {}", clientConfig.getPort());
-        clientConfig.setAddress(ADDRESS);
-        log.info("[Neptune RPC Configuration] client config port: {}", clientConfig.getAddress());
-        clientConfig.setApplicationName(PropertiesLoader.getStringValue(APPLICATION_NAME));
-        log.info("[Neptune RPC Configuration] client config application: {}", clientConfig.getApplicationName());
-        clientConfig.setProxy(PropertiesLoader.getStringValue(PROXY_TYPE));
-        log.info("[Neptune RPC Configuration] client config proxy: {}", clientConfig.getProxy());
-        clientConfig.setSerializer(loadNeptuneRpcSerializer());
-        clientConfig.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
-        clientConfig.setLoadBalanceStrategy(loadNeptuneRpcLoadBalance());
-        log.debug("config: {}", clientConfig);
+
         return clientConfig;
     }
 

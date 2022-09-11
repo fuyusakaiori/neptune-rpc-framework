@@ -6,12 +6,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
+import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
-import org.nep.rpc.framework.core.serialize.NeptuneSerializerFactory;
+import org.nep.rpc.framework.core.serialize.NeptuneSerializerType;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -32,22 +33,26 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         NeptuneRpcResponse response = new NeptuneRpcResponse();
         // 1. 从解码器中获取到的消息转换成协议的形式
         NeptuneRpcProtocol protocol =  (NeptuneRpcProtocol) message;
-        log.debug("message: {}", protocol);
+        log.debug("[neptune rpc server handler]: handle message - {}", protocol);
         // 2. 获取序列化算法
-        INeptuneSerializer serializer = NeptuneSerializerFactory.getSerializer(protocol.getSerializer());
-        // 3. 取出消息中的消息体, 然后将其反序列化; 暂时采用 json
+        INeptuneSerializer serializer = PropertyBootStrap.getServerConfig().getSerializer();
+        if (protocol.getSerializer() != NeptuneSerializerType.getSerializerCode(serializer)){
+            log.error("[neptune rpc server handler]: server's serializer is not same with client's serializer");
+            throw new RuntimeException("[neptune rpc server handler]: server's serializer is not same with client's serializer");
+        }
+        // 3. 取出消息中的消息体, 然后将其反序列化
         NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
-        log.debug("invocation: {}", invocation);
+        log.debug("[neptune rpc server handler]: handle message deserialize - {}", invocation);
         // 4. 从服务端容器中取出缓存的接口
         Object target = NeptuneRpcServerCache.getService(invocation.getServiceName());
         // 5. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
         if (target == null){
             response.setUuid(invocation.getUuid());
             response.setCode(NeptuneRpcResponseCode.FAIL.getCode());
-            response.setMessage("客户端调用的接口不存在");
+            response.setMessage(NeptuneRpcResponseCode.FAIL.getMessage());
             protocol.setContent(serializer.serialize(response));
             ctx.writeAndFlush(protocol);
-            log.error("[Neptune RPC Server]: 客户端调用的接口不存在");
+            log.error("[neptune rpc server handler]: client call service is null");
             return;
         }
         // 6. 获取目标类中的所有方法
@@ -60,7 +65,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
                 break;
             }
         }
-        // 8. 序列化结果写回给客户端; 暂时采用 json
+        // 8. 序列化结果写回给客户端
         response.setUuid(invocation.getUuid());
         response.setCode(NeptuneRpcResponseCode.SUCCESS.getCode());
         response.setMessage(NeptuneRpcResponseCode.SUCCESS.getMessage());
@@ -73,11 +78,13 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
      * <h3>避免调用重载方法: 暂时的解决方案</h3>
      */
     public boolean checkMethod(Method method, NeptuneRpcInvocation invocation){
+        // 1. 检查调用的方法名和当前方法名是否相同
         if (!method.getName().equals(invocation.getMethodName()))
             return false;
+        // 2. 检查调用的方法参数数量和当前方法的参数数量是否相同
         if (method.getParameterCount() != invocation.getArgs().length)
             return false;
-        log.debug("invocation: {}, method: {}", Arrays.toString(invocation.getTypes()), Arrays.toString(method.getParameterTypes()));
+        // 3. 检查调用的方法参数是否当前方法的方法参数类型一致
         return ArrayUtil.equals(invocation.getTypes(), method.getParameterTypes());
     }
 
@@ -86,7 +93,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.debug("[Neptune Server RPC]: 正在建立连接...");
+        log.info("[neptune rpc server]: server is handle connect event...");
         super.channelActive(ctx);
     }
 
