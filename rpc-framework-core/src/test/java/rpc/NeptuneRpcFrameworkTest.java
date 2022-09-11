@@ -14,6 +14,7 @@ import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.serialize.NeptuneJdkSerializer;
 import org.nep.rpc.framework.core.serialize.NeptuneSerializerType;
+import org.nep.rpc.framework.interfaces.INeptuneService;
 import org.nep.rpc.framework.registry.core.server.zookeeper.client.NeptuneZookeeperClient;
 
 import java.lang.reflect.InvocationTargetException;
@@ -158,9 +159,35 @@ public class NeptuneRpcFrameworkTest
     }
 
     @Test
-    public void getSerializeCode(){
+    public void serializeCodeTest(){
         int serializerCode = NeptuneSerializerType.getSerializerCode(new NeptuneJdkSerializer());
         System.out.println(serializerCode);
+    }
+
+    @Test
+    public void newProxyClassNameTest(){
+        INeptuneService service = new INeptuneService() {
+            @Override
+            public String send(String request) {
+                return null;
+            }
+
+            @Override
+            public String send(int request)
+            {
+                return null;
+            }
+
+            @Override
+            public List<String> receive()
+            {
+                return null;
+            }
+        };
+
+        System.out.println(service.getClass().getName());
+
+        System.out.println(Integer.class.isPrimitive());
     }
 
 

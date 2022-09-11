@@ -1,4 +1,4 @@
-package org.nep.rpc.framework.core.proxy.jdk;
+package org.nep.rpc.framework.core.proxy.javassist;
 
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -10,15 +10,13 @@ import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
- * <h3>JDK 动态代理</h3>
+ * <h3>Javassist 动态代理</h3>
  */
 @Slf4j
-public class JdkDynamicProxy implements InvocationHandler {
+public class JavassistProxy implements InvocationHandler {
 
     /**
      * <h3>超时时间</h3>
@@ -31,14 +29,10 @@ public class JdkDynamicProxy implements InvocationHandler {
      */
     private final Class<?> clazz;
 
-    public JdkDynamicProxy(Class<?> clazz) {
+    public JavassistProxy(Class<?> clazz) {
         this.clazz = clazz;
     }
 
-    /**
-     * <h3>1. 动态代理的过程也会去执行 invoke 方法</h3>
-     * <h3>2. 问题: ConcurrentHashMap 不允许存放空键值对</h3>
-     */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         // 1. 填充发送的请求
@@ -69,5 +63,4 @@ public class JdkDynamicProxy implements InvocationHandler {
         // 6. 如果超时那么就直接抛出异常
         throw new TimeoutException("[neptune rpc client proxy]: client remote call timeout");
     }
-
 }
