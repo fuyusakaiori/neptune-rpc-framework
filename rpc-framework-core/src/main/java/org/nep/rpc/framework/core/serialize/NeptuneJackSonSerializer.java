@@ -14,21 +14,27 @@ public class NeptuneJackSonSerializer implements INeptuneSerializer {
 
     @Override
     public byte[] serialize(Object source) {
+        log.info("[neptune rpc serializer]: jackson serialize start");
         try {
-            return MAPPER_LOCAL.get().writeValueAsBytes(source);
+            byte[] target = MAPPER_LOCAL.get().writeValueAsBytes(source);
+            log.info("[neptune rpc serializer]: jackson serialize end");
+            return target;
         } catch (JsonProcessingException e) {
-            log.error("[Neptune RPC Serialize]: {}", "Jackson 序列化异常");
+            log.error("[neptune rpc serializer]: jackson serialize occurred error", e);
+            return null;
         }
-        return null;
     }
 
     @Override
     public <T> T deserialize(byte[] source, Class<T> clazz) {
+        log.info("[neptune rpc serializer]: jackson deserialize start");
         try {
-            return MAPPER_LOCAL.get().readValue(source, clazz);
+            T target = MAPPER_LOCAL.get().readValue(source, clazz);
+            log.info("[neptune rpc serializer]: jackson deserialize end");
+            return target;
         } catch (IOException e) {
-            log.error("[Neptune RPC Serialize]: {}", "Jackson 反序列化异常");
+            log.error("[neptune rpc serializer]: jackson deserialize occurred error", e);
+            return null;
         }
-        return null;
     }
 }

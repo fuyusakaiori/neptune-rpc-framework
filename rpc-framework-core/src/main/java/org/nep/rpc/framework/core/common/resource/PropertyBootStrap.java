@@ -14,7 +14,7 @@ import org.nep.rpc.framework.core.router.random.NeptuneWeightRandomLoadBalance;
 import org.nep.rpc.framework.core.router.round.NeptuneSimpleRoundRobinLoadBalance;
 import org.nep.rpc.framework.core.router.round.NeptuneSmoothRoundRobinLoadBalance;
 import org.nep.rpc.framework.core.router.round.NeptuneWeightRoundRobinLoadBalance;
-import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
+import org.nep.rpc.framework.core.serialize.*;
 
 import java.lang.reflect.Constructor;
 import java.util.Objects;
@@ -29,8 +29,6 @@ public class PropertyBootStrap {
     private static final String ADDRESS = "127.0.0.1";
     //========================================== 序列化协议 ==========================================
     private static final String SERIALIZE_TYPE = "neptune.serialize.type";
-
-    private static final String SERIALIZE_PREFIX = "org.nep.rpc.framework.core.serialize";
 
     //========================================== 注册中心配置 ==========================================
     private static final String REGISTER_ADDRESS = "neptune.register.address";
@@ -149,19 +147,19 @@ public class PropertyBootStrap {
             throw new RuntimeException("[neptune rpc configuration]: load configuration serializer name is null");
         }
         log.info("[neptune rpc configuration] load configuration serializer name is - {}", serializeName);
-        // 3. 获取类加载器
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        try {
-            if (!serializeName.contains(SERIALIZE_PREFIX)){
-                serializeName = SERIALIZE_PREFIX + Separator.DOT + serializeName;
-            }
-            // 4. 反射加载
-            Class<?> clazz = classLoader.loadClass(serializeName);
-            serializer = (INeptuneSerializer) clazz.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("[neptune rpc configuration]: load configuration serializer occurred error");
+        // 3. 根据序列化算法名选择序列化算法
+        switch (serializeName) {
+            case INeptuneSerializer.gson:
+                return new NeptuneGsonSerializer();
+            case INeptuneSerializer.hessian:
+                return new NeptuneHessianSerializer();
+            case INeptuneSerializer.jackson:
+                return new NeptuneJackSonSerializer();
+            case INeptuneSerializer.kryo:
+                return new NeptuneKryoSerializer();
+            default:
+                return new NeptuneJdkSerializer();
         }
-        return serializer;
     }
 
     /**

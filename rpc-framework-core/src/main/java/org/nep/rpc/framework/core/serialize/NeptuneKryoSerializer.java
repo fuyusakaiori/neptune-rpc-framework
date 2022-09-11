@@ -45,6 +45,7 @@ public class NeptuneKryoSerializer implements INeptuneSerializer {
 
     @Override
     public byte[] serialize(Object source) {
+        log.info("[neptune rpc serializer]: kryo serialize start");
         byte[] target = null;
         // 1. 准备输出结果
         try (Output output = new Output(new ByteArrayOutputStream())){
@@ -53,23 +54,28 @@ public class NeptuneKryoSerializer implements INeptuneSerializer {
                     .writeClassAndObject(output, source);
             // 3. 从输出对象获取序列化结果
             target = output.toBytes();
+            log.info("[neptune rpc serialize]: kryo serialize end");
+            return target;
         } catch (Exception e) {
-            log.error("[Neptune RPC Serialize]: Kryo 序列化出现异常", e);
+            log.error("[neptune rpc serialize]: kryo serialize occurred error", e);
+            return null;
         }
-        return target;
     }
 
     @Override
     public <T> T deserialize(byte[] source, Class<T> clazz) {
+        log.info("[neptune rpc serializer]: kryo deserialize start");
         Object target = null;
         // 1. 获取输入结果
         try (Input input = new Input(new ByteArrayInputStream(source))){
             // 2. 反序列化并且获取结果
             target = KRYO_LOCAL.get()
                              .readClassAndObject(input);
+            log.info("[neptune rpc serialize]: kryo deserialize end");
+            return (T) target;
         } catch (Exception e) {
-            log.error("[Neptune RPC Serialize]: Kryo 反序列化出现异常", e);
+            log.error("[neptune rpc serialize]: kryo deserialize occurred error", e);
+            return (T) target;
         }
-        return (T) target;
     }
 }

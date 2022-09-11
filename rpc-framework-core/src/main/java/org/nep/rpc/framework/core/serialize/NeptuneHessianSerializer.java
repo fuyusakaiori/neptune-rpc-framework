@@ -12,10 +12,10 @@ import java.io.ByteArrayOutputStream;
  */
 @Slf4j
 @SuppressWarnings("unchecked")
-public class NeptuneHessianSerializer implements INeptuneSerializer
-{
+public class NeptuneHessianSerializer implements INeptuneSerializer {
     @Override
     public byte[] serialize(Object source) {
+        log.info("[neptune rpc serializer]: hessian serialize start");
         byte[] target = null;
         Hessian2Output hessian = null;
         try (ByteArrayOutputStream output = new ByteArrayOutputStream()){
@@ -28,14 +28,17 @@ public class NeptuneHessianSerializer implements INeptuneSerializer
             hessian.close();
             // 3. 获取序列化后的字节数组
             target = output.toByteArray();
+            log.info("[neptune rpc serializer]: hessian serialize end");
+            return target;
         } catch (Exception e) {
-            log.error("[Neptune RPC Serialize]: Hessian 序列化异常", e);
+            log.error("[neptune rpc serializer]: hessian serialize occurred error", e);
+            return target;
         }
-        return target;
     }
 
     @Override
     public <T> T deserialize(byte[] source, Class<T> clazz) {
+        log.info("[neptune rpc serializer]: hessian deserialize start");
         Object target = null;
         Hessian2Input hession = null;
         try {
@@ -43,9 +46,11 @@ public class NeptuneHessianSerializer implements INeptuneSerializer
                     new ByteArrayInputStream(source));
             target = hession.readObject();
             hession.close();
+            log.info("[neptune rpc serializer]: hessian deserialize end");
+            return (T) target;
         } catch (Exception e) {
-            log.error("[Neptune RPC Serialize]: Hessian 反序列化异常", e);
+            log.error("[neptune rpc serializer]: hessian deserialize occurred error", e);
+            return (T) target;
         }
-        return (T) target;
     }
 }
