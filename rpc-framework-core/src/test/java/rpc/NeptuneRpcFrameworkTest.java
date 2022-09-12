@@ -2,6 +2,7 @@ package rpc;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -166,28 +167,12 @@ public class NeptuneRpcFrameworkTest
 
     @Test
     public void newProxyClassNameTest(){
-        INeptuneService service = new INeptuneService() {
-            @Override
-            public String send(String request) {
-                return null;
-            }
+        test("");
+        System.out.println("yes");
+    }
 
-            @Override
-            public String send(int request)
-            {
-                return null;
-            }
+    public void test(String str){
 
-            @Override
-            public List<String> receive()
-            {
-                return null;
-            }
-        };
-
-        System.out.println(service.getClass().getName());
-
-        System.out.println(Integer.class.isPrimitive());
     }
 
 

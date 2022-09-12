@@ -1,70 +1,52 @@
 package org.nep.rpc.framework.core.common.cache;
 
-import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.nep.rpc.framework.core.server.NeptuneServiceWrapper;
 import org.nep.rpc.framework.registry.url.NeptuneURL;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  * <h3>容器</h3>
  */
 @Slf4j
 public class NeptuneRpcServerCache {
-    // 本服务器提供的所有服务: key: 服务名 value: 服务对应的实体类
-    private static final Map<String, Object> SERVICES = new ConcurrentHashMap<>();
 
-    // 存储已经注册的服务的结点地址: 此后采用异步线程将集合中的地址全部注册到注册中心去
-    private static final Set<NeptuneURL> SERVICE_URLS = new HashSet<>();
+    /**
+     * <h3>服务端缓存每个对外提供的服务</h3>
+     */
+    public static class Service{
+        private static final Map<String, NeptuneServiceWrapper> services = new HashMap<>();
 
-    public static boolean hasServicesUrl(){
-        return CollectionUtil.isNotEmpty(SERVICE_URLS);
-    }
-
-    public static Set<NeptuneURL> getServiceUrls(){
-        return SERVICE_URLS;
-    }
-
-    public static void cancelServiceUrl(NeptuneURL url){
-        if (url == null){
-            log.error("[Neptune RPC Server]: 需要下线的服务地址不存在");
-            return;
+        /**
+         * <h3>根据服务名获取服务</h3>
+         */
+        public static NeptuneServiceWrapper getService(String serviceName) {
+            if (StrUtil.isEmpty(serviceName)){
+                log.error("[neptune rpc server cache]: service name is null");
+                return null;
+            }
+            return services.get(serviceName);
         }
-        SERVICE_URLS.remove(url);
+
+        /**
+         * <h3>将注册的服务添加哈希表中</h3>
+         */
+        public static void registerService(String serviceName, NeptuneServiceWrapper wrapper) {
+            if (StrUtil.isEmpty(serviceName) || Objects.isNull(wrapper)){
+                log.error("[neptune rpc server cache]: service name or wrapper is null");
+                return;
+            }
+            services.put(serviceName, wrapper);
+        }
+
     }
 
-    public static void registerServiceUrl(NeptuneURL url){
-        if (url == null){
-            log.error("[Neptune RPC Server]: 需要注册的服务地址不可以为空");
-            return;
-        }
-        SERVICE_URLS.add(url);
-    }
+    /**
+     * <h3>服务端异步注册服务缓存的 URL</h3>
+     */
+    public static Set<NeptuneURL> URLS = new HashSet<>();
 
-    public static Object getService(String serviceName) {
-        if (serviceName == null){
-            log.error("[Neptune RPC Server]: ConcurrentHashMap 不能使用为空的 Key 进行查询");
-            return null;
-        }
-        return SERVICES.get(serviceName);
-    }
 
-    public static void registerService(String serviceName, Object service) {
-        if (serviceName == null || service == null){
-            log.error("[Neptune RPC Server]: ConcurrentHashMap 插入的键值对不能为空");
-            return;
-        }
-        SERVICES.put(serviceName, service);
-    }
-
-    public static Object cancelService(String serviceName) {
-        if (serviceName == null){
-            log.error("[Neptune RPC Server]: ConcurrentHashMap 不能使用为空的 Key 进行查询");
-            return null;
-        }
-        return SERVICES.remove(serviceName);
-    }
 }

@@ -9,12 +9,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
+import org.nep.rpc.framework.core.filter.chain.NeptuneClientFilter;
+import org.nep.rpc.framework.core.filter.client.NeptuneClientDirectInvokerFilter;
+import org.nep.rpc.framework.core.filter.client.NeptuneClientGroupFilter;
+import org.nep.rpc.framework.core.filter.client.NeptuneClientLogFilter;
 import org.nep.rpc.framework.core.handler.NeptuneRpcClientHandler;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcFrameDecoder;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
+import org.nep.rpc.framework.core.proxy.ProxyFactory;
 import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
@@ -32,21 +37,39 @@ public class NeptuneRpcClient {
 
     private static final String CONSUMER = "/consumer";
 
-    // 工作线程数量
+    /**
+     * <h3>工作线程数量</h3>
+     */
     private static final int WORKER_THREAD_COUNT = 4;
-    // 循环事件组
+
+    /**
+     * <h3>处理读写事件</h3>
+     */
     private EventLoopGroup worker;
-    // 动态代理包装类
-    private NeptuneRpcReference reference;
-    // 注册中心
+
+    /**
+     * <h3>注册中心</h3>
+     */
     private AbstractNeptuneRegister registry;
-    // 序列化算法
+
+    /**
+     * <h3>序列化算法</h3>
+     */
     private INeptuneSerializer serializer;
-    // 客户端配置类
-    private final NeptuneRpcClientConfig config;
-    // 负载均衡策略
+
+    /**
+     * <h3>负载均衡策略</h3>
+     */
     private INeptuneRpcLoadBalance loadBalance;
-    // 客户端
+
+    /**
+     * <h3>客户端配置类</h3>
+     */
+    private final NeptuneRpcClientConfig config;
+
+    /**
+     * <h3>客户端</h3>
+     */
     private Bootstrap client;
 
     public NeptuneRpcClient(){
@@ -62,10 +85,11 @@ public class NeptuneRpcClient {
      */
     public void startNeptune(){
         // 1. 如果注册中心或者客户端已经启动过了, 那么禁止重复启动
-        if (registry != null || client != null){
-            log.info("[Neptune RPC Client]: 客户端已经启动了, 请不要重复启动");
+        if (Objects.isNull(registry) || Objects.isNull(client)){
+            log.info("[neptune rpc client]: client already has start");
             return;
         }
+        log.info("[neptune rpc client]: client is starting");
         // 2. 初始化注册中心
         registry = new NeptuneZookeeperRegistry(config.getRegisterConfig());
         // 3. 初始化序列化算法
@@ -98,11 +122,12 @@ public class NeptuneRpcClient {
         // TODO 考虑下客户端应该怎么优雅地关闭
     }
 
-    public NeptuneRpcReference getReference(){
-        if (Objects.nonNull(reference)){
-            return this.reference;
+    public ProxyFactory getReference(){
+        ProxyFactory proxyFactory = config.getProxyFactory();
+        if (Objects.isNull(proxyFactory)){
+            throw new RuntimeException("[neptune rpc client]: proxy factory is null");
         }
-        return reference = new NeptuneRpcReference(new JdkDynamicProxyFactory());
+        return proxyFactory;
     }
 
     public NeptuneRpcClientConfig getClientConfig(){

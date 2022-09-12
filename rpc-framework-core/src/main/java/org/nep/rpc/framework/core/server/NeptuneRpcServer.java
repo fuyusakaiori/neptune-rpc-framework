@@ -1,5 +1,6 @@
 package org.nep.rpc.framework.core.server;
 
+import cn.hutool.core.collection.CollectionUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -15,6 +16,9 @@ import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.common.constant.ServerConfig;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
+import org.nep.rpc.framework.core.filter.chain.NeptuneServerFilter;
+import org.nep.rpc.framework.core.filter.server.NeptuneServerLogFilter;
+import org.nep.rpc.framework.core.filter.server.NeptuneTokenFilter;
 import org.nep.rpc.framework.core.handler.NeptuneRpcDecoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcEncoder;
 import org.nep.rpc.framework.core.handler.NeptuneRpcServerHandler;
@@ -25,23 +29,39 @@ import org.nep.rpc.framework.registry.url.NeptuneDefaultURL;
 import org.nep.rpc.framework.registry.url.NeptuneURL;
 
 import java.net.InetSocketAddress;
+import java.util.Objects;
 
 /**
  * <h3>Neptune RPC 服务器</h3>
  */
 @Slf4j
 public class NeptuneRpcServer {
-    // 负责处理连接事件的循环事件组
+
+    private static final String PROVIDER = "/provider";
+
+    /**
+     * <h3>处理连接事件</h3>
+     */
     private EventLoopGroup boss;
-    // 负责处理其他事件的循环事件组
+    /**
+     * <h3>处理读写事件</h3>
+     */
     private EventLoopGroup worker;
     private ChannelFuture future;
-    // 注册中心
+    /**
+     * <h3>注册中心</h3>
+     */
     private AbstractNeptuneRegister registry;
-    // 服务端
+    /**
+     * <h3>服务器</h3>
+     */
     private ServerBootstrap server;
-    // 服务器端配置类
+
+    /**
+     * <h3>配置类</h3>
+     */
     private final NeptuneRpcServerConfig config;
+
 
     public NeptuneRpcServer(){
         this(PropertyBootStrap.loadServerConfiguration());
@@ -58,8 +78,6 @@ public class NeptuneRpcServer {
     public void startNeptune() {
         // 0. 初始化注册中心
         registry = new NeptuneZookeeperRegistry(config.getConfig());
-        // TODO 注: 硬编码添加过滤器
-
         // 1. 初始化服务器
         server = new ServerBootstrap();
         // 2. 初始化事件循环组
@@ -118,28 +136,29 @@ public class NeptuneRpcServer {
     }
 
     /**
-     * <h3>1. 将对外提供的接口缓存</h3>
-     * <h3>2. 避免每次反射调用的时候都去查询</h3>
-     * <h3>注: 这里目前主要用于测试使用</h3>
+     * <h3>服务端注册服务</h3>
      */
-    public void registryClass(NeptuneServiceWrapper wrapper){
+    public void registerService(NeptuneServiceWrapper wrapper){
+        if (Objects.isNull(wrapper) || Objects.isNull(wrapper.getService())){
+            log.error("[neptune rpc server]: service wrapper or service is null");
+            return;
+        }
         // 0. 获取目标服务
         Object target = wrapper.getService();
-        // 1. 服务提供者不会直接将实现类暴露出来, 而是通过接口的形式对外提供, 所以实现类必须实现接口, 才是对外提供的服务
+        // 1. 检查提供的服务是否实现接口或者实现过多个接口: 仅允许暴露的服务实现单个接口
         Class<?>[] interfaces = target.getClass().getInterfaces();
         if (interfaces.length == 0){
-            log.error("[Neptune RPC Server]: 被调用的类没有实现接口");
+            log.error("[neptune rpc server]: export service don't implement interface");
             return;
         }
-        // 2. thrift 框架好像每个对外提供的实现类也只会是实现一个接口, 暂时不清楚为什么只能有一个接口
         if (interfaces.length > 1){
-            log.error("[Neptune RPC Server]: 被调用的类只能有一个接口实现");
+            log.error("[neptune rpc server]: export service implements multiple interfaces");
             return;
         }
-        // 3. 如果符合条件, 那么就将对外提供的接口名字和实现类对象放入缓存中
-        NeptuneRpcServerCache.registerService(interfaces[0].getName(), target);
-        // 4. 将对外提供的服务 (接口 / 类) 生成对应的 URL 后存储在本地缓存中
-        NeptuneRpcServerCache.registerServiceUrl(getUrl(wrapper));
+        // 3. 将每个服务端提供的所有接口-实现类全部保存在哈希表中: key: interface value: service 包装类
+        NeptuneRpcServerCache.Service.registerService(interfaces[0].getName(), wrapper);
+        // 4. 将每个服务端提供的所有接口全部转换成对应的地址然后异步注册到注册中心
+        NeptuneRpcServerCache.URLS.add(getUrl(wrapper));
         // TODO 限流和 token 之后再做
     }
 
@@ -147,17 +166,21 @@ public class NeptuneRpcServer {
      * <h3>异步地将缓存在本地的 URL 地址添加到注册中心</h3>
      */
     private void registryServices(){
+        log.info("[neptune rpc server async task]: async thread start");
         new Thread(new AsyncRegistryTask()).start();
-        log.debug("[Neptune RPC Server]: 服务端异步线程启动");
     }
 
     private final class AsyncRegistryTask implements Runnable{
         @Override
         public void run() {
-            if (NeptuneRpcServerCache.hasServicesUrl()){
-                for (NeptuneURL url : NeptuneRpcServerCache.getServiceUrls()) {
+            // 1. 检查服务端缓存的 URL 是否为空
+            if (!CollectionUtil.isEmpty(NeptuneRpcServerCache.URLS)){
+                // 2. 遍历服务端缓存的 URL 然后注册到注册中心
+                NeptuneRpcServerCache.URLS.forEach(url -> {
+                    log.info("[neptune rpc server async thread]: register service url start - {}", url.toString(PROVIDER));
                     registry.register(url);
-                }
+                });
+                // TODO 3. 所有服务端缓存的 URL 都注册到注册中心后就可以直接移除, 否则会造成内存泄漏
             }
         }
     }

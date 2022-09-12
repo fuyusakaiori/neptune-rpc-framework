@@ -7,15 +7,20 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcServerCache;
 import org.nep.rpc.framework.core.common.resource.PropertyBootStrap;
+import org.nep.rpc.framework.core.filter.chain.NeptuneServerFilter;
+import org.nep.rpc.framework.core.filter.server.NeptuneServerLogFilter;
+import org.nep.rpc.framework.core.filter.server.NeptuneTokenFilter;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcProtocol;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponseCode;
 import org.nep.rpc.framework.core.serialize.INeptuneSerializer;
 import org.nep.rpc.framework.core.serialize.NeptuneSerializerType;
+import org.nep.rpc.framework.core.server.NeptuneServiceWrapper;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * <h3>Neptune RPC 服务器消息处理器</h3>
@@ -24,6 +29,12 @@ import java.util.Arrays;
  */
 @Slf4j
 public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
+    /**
+     * <h3>服务端过滤链</h3>
+     */
+    private static final NeptuneServerFilter filter = new NeptuneServerLogFilter()
+                         .setNextFilter(new NeptuneTokenFilter());
+
 
     /**
      * <h3>处理器读事件</h3>
@@ -43,10 +54,12 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
         // 3. 取出消息中的消息体, 然后将其反序列化
         NeptuneRpcInvocation invocation = serializer.deserialize(protocol.getContent(), NeptuneRpcInvocation.class);
         log.debug("[neptune rpc server handler]: handle message deserialize - {}", invocation);
+        // 注: 调用过滤链处理客户端的请求
+        filter.execute(invocation);
         // 4. 从服务端容器中取出缓存的接口
-        Object target = NeptuneRpcServerCache.getService(invocation.getServiceName());
+        NeptuneServiceWrapper wrapper = NeptuneRpcServerCache.Service.getService(invocation.getServiceName());
         // 5. 如果缓存中不存在对应的接口, 那么就直接返回, 并且告诉客户端不存在
-        if (target == null){
+        if (Objects.isNull(wrapper) || Objects.isNull(wrapper.getService())){
             response.setUuid(invocation.getUuid());
             response.setCode(NeptuneRpcResponseCode.FAIL.getCode());
             response.setMessage(NeptuneRpcResponseCode.FAIL.getMessage());
@@ -55,6 +68,7 @@ public class NeptuneRpcServerHandler extends ChannelInboundHandlerAdapter {
             log.error("[neptune rpc server handler]: client call service is null");
             return;
         }
+        Object target = wrapper.getService();
         // 6. 获取目标类中的所有方法
         Method[] methods = target.getClass().getDeclaredMethods();
         // 7. 开始匹配方法然后调用

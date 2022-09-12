@@ -55,6 +55,7 @@ public class ChildrenNodeListener implements PathChildrenCacheListener {
      */
     private void handleChildAddEvent(String serviceName, String nodeName){
         log.info("[neptune rpc zookeeper watcher children listener]: watcher add event handle start");
+        // TODO 建立连接后应该考虑将连接放入缓存中
         NeptuneRpcConnectionHandler.connect(serviceName, nodeName);
         // 注: 新增的子结点不需要去监听, 只需要通过当前这个父结点就可以监听到
         log.info("[neptune rpc zookeeper watcher children listener]: watcher add event handle successfully");

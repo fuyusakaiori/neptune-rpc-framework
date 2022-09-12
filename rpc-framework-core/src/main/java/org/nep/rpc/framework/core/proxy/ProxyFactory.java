@@ -1,6 +1,12 @@
 package org.nep.rpc.framework.core.proxy;
 
+import org.nep.rpc.framework.core.client.NeptuneRpcReference;
+
 public interface ProxyFactory {
 
-    <T> T getProxy(Class<T> clazz);
+    String jdk = "jdk";
+
+    String javassist = "javassist";
+
+    <T> T getProxy(NeptuneRpcReference reference);
 }

@@ -17,19 +17,19 @@ public class NeptuneClientDirectInvokerFilter extends NeptuneClientFilter {
 
     @Override
     protected void filter(List<NeptuneRpcInvoker> invokers, NeptuneRpcInvocation invocation) {
-        // 1. 获取 IP 地址
+        // 1. 获取客户端调用的服务端地址: ip:port
         String url = String.valueOf(invocation.getAttachments().get(URL));
-        // 2. 如果 IP 地址为空, 那么直接返回
+        // 2. 如果调用的服务端地址为空, 那么直接返回
         if (StrUtil.isEmpty(url)){
-            log.error("[Neptune RPC Filter]: 获取的 IP 地址为空");
+            log.error("[neptune rpc client filter chain]: invocation url is null");
             return;
         }
-        // 3. 根据 IP 地址分流
+        // 3. 如果调用集合中的服务端地址不符合客户端发起的请求, 那么直接移除: 同一台服务器上可以有多个进程
         invokers.removeIf(invoker -> !url.equals(
                 invoker.getAddress() + Separator.COLON + invoker.getPort()));
         // 4. 检查分流后的调用者集合是否为空
         if (CollectionUtil.isEmpty(invokers)){
-            log.info("[Neptune RPC Filter]: IP 地址不匹配 -> 没有可以调用的服务");
+            log.info("[neptune rpc client filter chain]: can't find invoker to call");
         }
     }
 }

@@ -110,13 +110,17 @@ public class NeptuneRpcClientCache {
     }
 
     /**
-     * <h3>客户端存储订阅的服务（接口）的地址</h3>
+     * <h3>客户端缓存自己订阅的所有服务</h3>
+     * TODO
+     * <h3>目前存在内存泄漏问题: </h3>
+     * <h3>1. 客户端仅在启动时会将自己订阅的所有服务缓存在集合中</h3>
+     * <h3>2. 然后通过获取所有订阅的服务从而和所有提供服务的服务端建立连接</h3>
+     * <h3>3. 最后就不会再使用缓存的所有服务, 还在纠结怎么解决问题</h3>
      */
     public static class Service {
 
         /**
-         * 集合存储的是客户端的服务订阅的路径不是服务注册的路径
-         * TODO 存在并发修改的问题
+         * <h3>集合存储的是客户端的服务订阅的路径不是服务注册的路径</h3>
          */
         private static final List<NeptuneURL> services = new ArrayList<>();
 
@@ -140,18 +144,6 @@ public class NeptuneRpcClientCache {
                 return;
             }
             services.remove(url);
-        }
-
-        /**
-         * <h3>如果服务提供者的权重之类的属性变了, 那么本地存储的内容就需要变化</h3>
-         */
-        public static void update(NeptuneURL url){
-            for (int index = 0; index < services.size(); index++) {
-                if (services.get(index).equals(url)){
-                    services.set(index, url);
-                    break;
-                }
-            }
         }
 
         public static List<String> getServices(){

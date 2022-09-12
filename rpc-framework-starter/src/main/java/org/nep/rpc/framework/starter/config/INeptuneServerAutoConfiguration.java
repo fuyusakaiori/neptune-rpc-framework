@@ -50,7 +50,7 @@ public class INeptuneServerAutoConfiguration implements InitializingBean, Applic
             // 5.2 根据接口实例获取注解实例
             INeptuneRpcService rpcService = bean.getClass().getAnnotation(INeptuneRpcService.class);
             // 5.3 注册服务
-            server.registryClass(new NeptuneServiceWrapper()
+            server.registerService(new NeptuneServiceWrapper()
                                          .setService(bean)
                                          .setGroup(rpcService.group())
                                          .setToken(rpcService.serviceToken())

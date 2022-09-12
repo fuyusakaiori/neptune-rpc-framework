@@ -9,7 +9,8 @@ import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 public class NeptuneServerLogFilter extends NeptuneServerFilter {
     @Override
     protected void filter(NeptuneRpcInvocation invocation) {
-        log.info(invocation.getAttachments().get("c_app_name") + " 正在调用 -----> "
-                         + invocation.getServiceName() + Separator.WELL + invocation.getMethodName());
+        log.info("[neptune rpc server filter chain]" +
+                         invocation.getAttachments().get("c_app_name") + " invoke " +
+                         invocation.getServiceName() + Separator.WELL + invocation.getMethodName());
     }
 }

@@ -50,8 +50,6 @@ public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
         }
         // 3. 创建服务提供者的结点: 采用临时结点注册
         zookeeperClient.createNode(path, url.toString(), CreateMode.EPHEMERAL);
-        // 4. 存储在哈希表中
-        super.register(url);
         log.info("[neptune rpc zookeeper] provider register successfully");
     }
 
@@ -62,8 +60,6 @@ public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
     public void cancel(NeptuneURL url) {
         // 1. 删除结点
         zookeeperClient.deleteNode(url.toString(PROVIDER));
-        // 2. 删除哈希表中的路径
-        super.cancel(url);
         log.info("[neptune rpc zookeeper] provider cancel successfully");
     }
 
@@ -83,7 +79,7 @@ public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
         // 3. 创建服务订阅的结点: 采用临时结点
         zookeeperClient.createNode(path, url.toString(), CreateMode.EPHEMERAL);
         // 4. 服务订阅后添加到哈希表中: 哈希表中记录订阅的服务, 不是服务提供者
-        super.subscribe(url);
+        NeptuneRpcClientCache.Service.subscribe(url);
     }
 
     /**
@@ -94,7 +90,7 @@ public class NeptuneZookeeperRegistry extends AbstractNeptuneRegister {
         // 1. 删除消费者结点
         zookeeperClient.deleteNode(url.toString(CONSUMER));
         // 2. 移除订阅的路径
-        super.unsubscribe(url);
+        NeptuneRpcClientCache.Service.unsubscribe(url);
     }
 
     /**

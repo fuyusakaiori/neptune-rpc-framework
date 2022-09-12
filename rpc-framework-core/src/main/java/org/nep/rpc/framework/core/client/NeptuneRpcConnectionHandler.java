@@ -7,6 +7,10 @@ import io.netty.channel.ChannelFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
 import org.nep.rpc.framework.core.common.constant.Separator;
+import org.nep.rpc.framework.core.filter.chain.NeptuneClientFilter;
+import org.nep.rpc.framework.core.filter.client.NeptuneClientDirectInvokerFilter;
+import org.nep.rpc.framework.core.filter.client.NeptuneClientGroupFilter;
+import org.nep.rpc.framework.core.filter.client.NeptuneClientLogFilter;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 
@@ -25,6 +29,13 @@ public class NeptuneRpcConnectionHandler {
     private static final int PORT_INDEX = 2;
 
     private static final int PATH_LENGTH = 3;
+
+    /**
+     * <h3>客户端过滤链</h3>
+     */
+    private static final NeptuneClientFilter filter = new NeptuneClientLogFilter()
+                                                              .setNextFilter(new NeptuneClientGroupFilter())
+                                                              .setNextFilter(new NeptuneClientDirectInvokerFilter());
 
     private static Bootstrap client;
 
@@ -47,7 +58,7 @@ public class NeptuneRpcConnectionHandler {
             log.error("[neptune rpc client connection handler]: service name or node path is null");
             return;
         }
-        // 3. 检验连接是否已经存在: 监听器缓存和注册中心不一致的问题?
+        // 3. 检验连接是否已经存在
         if (NeptuneRpcClientCache.Connection.isConnect(serviceName, path)){
             log.warn("[neptune rpc client connection handler]: connection handler occurred duplicate connection");
             return;
@@ -114,13 +125,15 @@ public class NeptuneRpcConnectionHandler {
             return null;
         }
         // 2. 获取所有提供服务的服务端: 服务名 + 方法名共同决定
-        List<NeptuneRpcInvoker> providers = NeptuneRpcClientCache.Connection.providers(invocation.getServiceName());
-        if (CollectionUtil.isEmpty(providers)){
+        List<NeptuneRpcInvoker> invokers = NeptuneRpcClientCache.Connection.providers(invocation.getServiceName());
+        if (CollectionUtil.isEmpty(invokers)){
             log.warn("[neptune rpc client connection handler]: connection handler can't find provider");
             return null;
         }
+        // 注: 过滤不满足条件的服务端
+        filter.execute(invokers, invocation);
         // 3. 采用最简单的策略实现负载均衡: 随机选择
-        return loadBalance.select(providers, invocation);
+        return loadBalance.select(invokers, invocation);
     }
 
 }

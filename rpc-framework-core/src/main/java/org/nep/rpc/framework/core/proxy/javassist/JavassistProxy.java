@@ -2,6 +2,7 @@ package org.nep.rpc.framework.core.proxy.javassist;
 
 import cn.hutool.core.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.nep.rpc.framework.core.client.NeptuneRpcReference;
 import org.nep.rpc.framework.core.common.cache.NeptuneRpcClientCache;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcInvocation;
 import org.nep.rpc.framework.core.protocol.NeptuneRpcResponse;
@@ -27,10 +28,10 @@ public class JavassistProxy implements InvocationHandler {
     /**
      * <h3>代理的目标对象接口</h3>
      */
-    private final Class<?> clazz;
+    private final NeptuneRpcReference reference;
 
-    public JavassistProxy(Class<?> clazz) {
-        this.clazz = clazz;
+    public JavassistProxy(NeptuneRpcReference reference) {
+        this.reference = reference;
     }
 
     @Override
@@ -39,7 +40,8 @@ public class JavassistProxy implements InvocationHandler {
         NeptuneRpcInvocation invocation = new NeptuneRpcInvocation();
         invocation.setArgs(args);
         invocation.setMethodName(method.getName());
-        invocation.setServiceName(clazz.getName());
+        invocation.setServiceName(reference.getTarget().getName());
+        invocation.setAttachments(reference.getAttachments());
         invocation.setTypes(method.getParameterTypes());
         invocation.setUuid(RandomUtil.randomNumbers(6));
         // 2. 把即将要发送的请求的序列号填充到哈希表中, 确保接收的时候是对应的

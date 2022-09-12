@@ -10,6 +10,8 @@ import java.lang.annotation.*;
 @Documented
 public @interface INeptuneRpcReference {
 
+    String url() default "";
+
     String group() default "default";
 
     String token() default "";

@@ -1,6 +1,7 @@
 package org.nep.rpc.framework.core.proxy.jdk;
 
 import lombok.extern.slf4j.Slf4j;
+import org.nep.rpc.framework.core.client.NeptuneRpcReference;
 import org.nep.rpc.framework.core.proxy.ProxyFactory;
 
 import java.lang.reflect.Proxy;
@@ -9,8 +10,9 @@ import java.lang.reflect.Proxy;
 @SuppressWarnings("unchecked")
 public class JdkDynamicProxyFactory implements ProxyFactory {
     @Override
-    public <T> T getProxy(Class<T> clazz) {
+    public <T> T getProxy(NeptuneRpcReference reference) {
+        Class<?> target = reference.getTarget();
         return (T) Proxy.newProxyInstance(
-                clazz.getClassLoader(), new Class[]{clazz}, new JdkDynamicProxy(clazz));
+                target.getClassLoader(), new Class[]{target}, new JdkDynamicProxy(reference));
     }
 }

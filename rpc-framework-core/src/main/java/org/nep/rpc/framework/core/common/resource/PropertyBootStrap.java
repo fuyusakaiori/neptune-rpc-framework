@@ -7,6 +7,9 @@ import org.nep.rpc.framework.core.common.config.NeptuneRpcClientConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcRegisterConfig;
 import org.nep.rpc.framework.core.common.config.NeptuneRpcServerConfig;
 import org.nep.rpc.framework.core.common.constant.Separator;
+import org.nep.rpc.framework.core.proxy.ProxyFactory;
+import org.nep.rpc.framework.core.proxy.javassist.JavassistProxyFactory;
+import org.nep.rpc.framework.core.proxy.jdk.JdkDynamicProxyFactory;
 import org.nep.rpc.framework.core.router.INeptuneRpcLoadBalance;
 import org.nep.rpc.framework.core.router.hash.NeptuneConsistentHashLoadBalance;
 import org.nep.rpc.framework.core.router.random.NeptuneSimpleRandomLoadBalance;
@@ -107,17 +110,17 @@ public class PropertyBootStrap {
             clientConfig.setApplicationName(PropertiesLoader.getStringValue(APPLICATION_NAME));
             log.info("[neptune rpc configuration] client configuration loading application: {}", clientConfig.getApplicationName());
 
-            clientConfig.setProxy(PropertiesLoader.getStringValue(PROXY_TYPE));
-            log.info("[neptune rpc configuration] client configuration loading proxy: {}", clientConfig.getProxy());
+            clientConfig.setProxyFactory(loadNeptuneProxyFactory());
+            log.info("[neptune rpc configuration] client configuration loading proxy: {}", clientConfig.getProxyFactory());
 
             clientConfig.setSerializer(loadNeptuneRpcSerializer());
-            log.info("[neptune rpc configuration] client configuration loading serializer");
+            log.info("[neptune rpc configuration] client configuration loading serializer: {}", clientConfig.getSerializer());
 
             clientConfig.setRegisterConfig(loadNeptuneRpcRegisterConfiguration());
-            log.info("[neptune rpc configuration] client configuration loading register");
+            log.info("[neptune rpc configuration] client configuration loading register: {}", clientConfig.getRegisterConfig());
 
             clientConfig.setLoadBalanceStrategy(loadNeptuneRpcLoadBalance());
-            log.info("[neptune rpc configuration] client configuration loading load balance");
+            log.info("[neptune rpc configuration] client configuration loading load balance: {}", clientConfig.getLoadBalanceStrategy());
 
         } catch (Exception e) {
             throw new RuntimeException("[neptune rpc configuration]: client configuration loading occurred error", e);
@@ -127,29 +130,43 @@ public class PropertyBootStrap {
     }
 
     /**
+     * <h3>加载动态代理策略</h3>
+     */
+    private static ProxyFactory loadNeptuneProxyFactory(){
+        String proxyType = PropertiesLoader.getStringValue(PROXY_TYPE);
+        if (ProxyFactory.javassist.equals(proxyType)){
+            return new JavassistProxyFactory();
+        }else if (ProxyFactory.jdk.equals(proxyType)){
+            return new JdkDynamicProxyFactory();
+        }else{
+            throw new RuntimeException("[neptune rpc configuration] proxy type doesn't support");
+        }
+    }
+
+    /**
      * <h3>加载注册中心</h3>
      */
     private static NeptuneRpcRegisterConfig loadNeptuneRpcRegisterConfiguration(){
         NeptuneRpcRegisterConfig config = new NeptuneRpcRegisterConfig();
         String address = PropertiesLoader.getStringValue(REGISTER_ADDRESS);
-        if (address != null){
+        if (Objects.nonNull(address)){
             config.setAddress(address);
-            log.info("[Neptune RPC PropertiesBootStrap]: config registry address: {}", address);
+            log.info("[neptune rpc configuration]: config registry address: {}", address);
         }
         Integer connectTime = PropertiesLoader.getIntegerValue(REGISTER_CONFIG_CONNECT_TIME);
-        if (connectTime != null) {
+        if (Objects.nonNull(connectTime)) {
             config.setConnectTime(connectTime);
-            log.info("[Neptune RPC PropertiesBootStrap]: config registry connectTime: {}", connectTime);
+            log.info("[neptune rpc configuration]: config registry connectTime: {}", connectTime);
         }
         Integer sessionTime = PropertiesLoader.getIntegerValue(REGISTER_CONFIG_SESSION_TIME);
-        if (sessionTime != null){
+        if (Objects.nonNull(sessionTime)){
             config.setSessionTime(sessionTime);
-            log.info("[Neptune RPC PropertiesBootStrap]: config registry sessionTime: {}", sessionTime);
+            log.info("[neptune rpc configuration]: config registry sessionTime: {}", sessionTime);
         }
         String namespace = PropertiesLoader.getStringValue(REGISTER_CONFIG_NAMESPACE);
-        if (namespace != null){
+        if (Objects.nonNull(namespace)){
             config.setNamespace(namespace);
-            log.info("[Neptune RPC PropertiesBootStrap]: config registry namespace: {}", namespace);
+            log.info("[neptune rpc configuration]: config registry namespace: {}", namespace);
         }
         return config;
     }
@@ -158,7 +175,6 @@ public class PropertyBootStrap {
      * <h3>加载序列化策略</h3>
      */
     private static INeptuneSerializer loadNeptuneRpcSerializer() {
-        INeptuneSerializer serializer = null;
         // 1. 获取采用的序列化算法名称
         String serializeName = PropertiesLoader.getStringValue(SERIALIZE_TYPE);
         // 2. 检查序列化算法名称是否为空
@@ -176,8 +192,10 @@ public class PropertyBootStrap {
                 return new NeptuneJackSonSerializer();
             case INeptuneSerializer.kryo:
                 return new NeptuneKryoSerializer();
-            default:
+            case INeptuneSerializer.jdk:
                 return new NeptuneJdkSerializer();
+            default:
+                throw new RuntimeException("[neptune rpc configuration]: serializer type doesn't not supported");
         }
     }
 
@@ -185,7 +203,6 @@ public class PropertyBootStrap {
      * <h3>加载路由策略</h3>
      */
     private static INeptuneRpcLoadBalance loadNeptuneRpcLoadBalance(){
-        INeptuneRpcLoadBalance strategy = null;
         // 1. 获取配置的负载均衡策略的全限定名
         String strategyName = PropertiesLoader.getStringValue(BALANCE_POLICY);
         if (StrUtil.isEmpty(strategyName))
@@ -204,8 +221,10 @@ public class PropertyBootStrap {
                     return new NeptuneWeightRandomLoadBalance();
                 case INeptuneRpcLoadBalance.robinWeight:
                     return new NeptuneWeightRoundRobinLoadBalance();
-                default:
+                case INeptuneRpcLoadBalance.robinSmooth:
                     return new NeptuneSmoothRoundRobinLoadBalance();
+                default:
+                    throw new RuntimeException("[neptune rpc configuration] load balance type doesn't support");
             }
         } catch (Exception e) {
             throw new RuntimeException("[neptune rpc configuration]: load configuration strategy occurred error");

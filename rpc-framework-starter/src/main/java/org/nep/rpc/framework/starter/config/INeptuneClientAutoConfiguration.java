@@ -1,8 +1,10 @@
 package org.nep.rpc.framework.starter.config;
 
+import cn.hutool.core.map.MapUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.nep.rpc.framework.core.client.NeptuneRpcClient;
 import org.nep.rpc.framework.core.client.NeptuneRpcReference;
+import org.nep.rpc.framework.core.proxy.ProxyFactory;
 import org.nep.rpc.framework.starter.common.INeptuneRpcReference;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -19,7 +21,7 @@ import java.util.Objects;
 public class INeptuneClientAutoConfiguration implements
         BeanPostProcessor, ApplicationListener<ApplicationReadyEvent> {
 
-    private static NeptuneRpcReference reference;
+    private static ProxyFactory proxyFactory;
     /**
      * <h3>客户端</h3>
      */
@@ -43,7 +45,7 @@ public class INeptuneClientAutoConfiguration implements
             if (field.isAnnotationPresent(INeptuneRpcReference.class)){
                 if (!hasInitClientConfig){
                     client = new NeptuneRpcClient();
-                    reference = client.getReference();
+                    proxyFactory = client.getReference();
                     hasInitClientConfig = true;
                 }
                 needInitClient = true;
@@ -51,14 +53,24 @@ public class INeptuneClientAutoConfiguration implements
             INeptuneRpcReference rpcReference = field.getAnnotation(INeptuneRpcReference.class);
             field.setAccessible(true);
             try {
-                // TODO 附加参数的填充没有做
-                field.set(bean, reference.getProxy(field.getType()));
+                field.set(bean, proxyFactory.getProxy(newRpcReference(field, rpcReference)));
                 client.subscribeService(field.getType());
             } catch (IllegalAccessException e) {
                 log.error("[Neptune RPC AutoConfig]: 客户端在获取动态代理时出现异常", e);
             }
         }
         return bean;
+    }
+
+    private NeptuneRpcReference newRpcReference(Field field, INeptuneRpcReference rpcReference){
+        NeptuneRpcReference reference = new NeptuneRpcReference();
+        reference.setTarget(field.getType());
+        reference.setToken(rpcReference.token());
+        reference.setGroup(rpcReference.group());
+        reference.setUrl(rpcReference.url());
+        reference.setTimeout(rpcReference.timeOut());
+        reference.setRetryTime(rpcReference.retry());
+        return reference;
     }
 
 
